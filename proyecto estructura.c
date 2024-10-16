@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+/* INCOMPLETO */
 
 struct presidente{
     char *nombre;
@@ -30,4 +31,3 @@ struct congreso{
 };
 
 /* INCOMPLETO */
-HOLA RIGO
