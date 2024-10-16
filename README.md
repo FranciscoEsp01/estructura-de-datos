@@ -1,1 +1,1 @@
-el que no trabaje balazo
+el que no trabaje balazo 🔫
