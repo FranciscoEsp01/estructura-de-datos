@@ -30,3 +30,4 @@ struct congreso{
 };
 
 /* INCOMPLETO */
+HOLA RIGO
