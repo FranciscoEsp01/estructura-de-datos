@@ -29,7 +29,7 @@ struct congreso{
     struct camaraSenado *camaraSenadores;
     struct camaraDiputados *camaraDiputados;
 };
-struct camarasenado{
+struct camaraSenado{
     struct senador *senadores[50];
 };
 
