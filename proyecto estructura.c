@@ -29,3 +29,4 @@ struct congreso{
     struct camaraDiputados *camaraDiputados;
 };
 
+/* INCOMPLETO */
