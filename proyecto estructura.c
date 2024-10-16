@@ -22,12 +22,22 @@ struct diputado{
     int voto;
 };
 struct camaraDiputados{
-    struct diputado *diputados[50];
+    struct diputado *diputados[155];
 };
 
 struct congreso{
     struct camaraSenado *camaraSenadores;
     struct camaraDiputados *camaraDiputados;
+};
+struct camarasenado{
+    struct senador *senadores[50];
+};
+
+struct senador{
+    char *nombre;
+    char *rut;
+    int edad;
+    int voto;
 };
 
 /* INCOMPLETO */
