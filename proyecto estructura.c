@@ -40,4 +40,9 @@ struct senador{
     int voto;
 };
 
+/* nodoPropuestas ARBOL BINARIO DE BUSQUEDA*/
+struct nodoPropuestas{
+    struct propuesta *datos;
+    struct nodoPropuestas *izq, *der;
+}
 /* INCOMPLETO */
