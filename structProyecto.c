@@ -27,6 +27,8 @@ struct ProcesoLegislativo{
   struct congreso *congreso;
   struct nodoPropuestas *propuesta;
   struct nodoCiudadano *ciudadanos;
+  struct tribunalConstitucional *tc;
+  struct nodoBoletin *boletinEstado;
 };
 
 struct presidente{
