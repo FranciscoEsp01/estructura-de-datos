@@ -72,6 +72,7 @@ struct nodoSenador{
     struct nodoSenador *ant, *sig;
 };
 
+/*lista doble*/
 struct nodoCiudadano{
   struct persona *datos;
   struct nodoCiudadano *ant, *sig;
