@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAXMINISTROSTRIBUNAL 10
-
 /* cambios 1.1
 
     se agrego la funcion crearPersona para crear una persona con los datos necesarios
@@ -15,6 +13,11 @@
 
     mas tarde o mañana voy a hacer para los ciudadanos y senadores, ademas de la funcion de quitar
     
+*/
+/* cambio 1.2
+    se elimina tribunal constitucional ya que no es parte de la problematica del trabajo
+    se elimina Struct camaraDeOrigen ya que pasara a ser una funcion dependiente del tema del proyecto y pasara a ser struct congreso
+    se agrega "Cargo" dentro del struct persona para diferenciar diputados y senadores
 */
 
 struct ProcesoLegislativo{
@@ -47,10 +50,6 @@ struct propuesta{
 };
 
 struct congreso{
-    struct camaraDeOrigen *camaraDeOrigen;
-};
-
-struct camaraDeOrigen{
     struct nodoSenador *senadores;
     struct nodoDiputado *diputados;
 };
@@ -77,13 +76,9 @@ struct persona{
   char *rut;
   char *nombre;
   int edad;
+  char *cargo;
   char *especialidad;
   int voto;
-};
-
-struct tribunalConstitucional {
-    struct persona *ministro[10];
-    int cantidadVotos;
 };
 
 /* nodoBoletin LISTA SIMPLE */
@@ -98,7 +93,7 @@ struct boletin {
     char *fechaVigencia;
 };
 
-struct persona *crearPersona(char *rut, char *nombre, int edad, char *especialidad, int voto){
+struct persona *crearPersona(char *rut, char *nombre, int edad, char *especialidad, int voto, char*cargo){
 
     struct persona *nuevaPersona;
     nuevaPersona = (struct persona *) malloc(sizeof(struct persona));
@@ -110,6 +105,9 @@ struct persona *crearPersona(char *rut, char *nombre, int edad, char *especialid
     strcpy(nuevaPersona->nombre, nombre);
 
     nuevaPersona->edad = edad;
+
+    nuevaPersona->cargo =(char *) malloc(sizeof(char) * strlen(cargo) + 1);
+    strcpy(nuevaPersona->cargo, cargo);
 
     nuevaPersona->especialidad = (char *) malloc(sizeof(char) * strlen(especialidad) + 1);
     strcpy(nuevaPersona->especialidad, especialidad);
@@ -158,7 +156,8 @@ void mostrarDiputados(struct nodoDiputado *diputados){
         printf("Nombre: %s\n", rec->headDiputados->nombre);
         printf("Edad: %d\n", rec->headDiputados->edad);
         printf("Especialidad: %s\n", rec->headDiputados->especialidad);
-        printf("Voto: %d\n\n", rec->headDiputados->voto);
+        printf("Voto: %d\n", rec->headDiputados->voto);
+        printf("Cargo: %s\n", rec->headDiputados->cargo);
         rec = rec->sig;
     } while (rec != diputados);
 }
@@ -193,23 +192,22 @@ int main () {
 
     /* diputados de prueba, formato {rut, nombre, edad, especialidad, voto}, esto para agregar/quitarlos del proceso legislativo */
 
-    diputado1 = crearPersona("21777777-6", "Rodrigo Teniente", 30, "Educacion", 0);
-    diputado2 = crearPersona("15325949-K", "Juan Perez", 50, "Economia", 0);
-    diputado3 = crearPersona("93429349-6", "Jorge Fernandez", 37, "Trabajo", 0);
-    diputado4 = crearPersona("24055505-4", "Rene Puentes", 43, "Salud", 0);
-    diputado5 = crearPersona("21777777-7", "Jorge El Flaco Johnson", 21, "Educacion", 0);
+    diputado1 = crearPersona("21777777-6", "Rodrigo Teniente", 30, "Educacion", 0, "diputado");
+    diputado2 = crearPersona("15325949-K", "Juan Perez", 50, "Economia", 0, "diputado");
+    diputado3 = crearPersona("93429349-6", "Jorge Fernandez", 37, "Trabajo", 0, "diputado");
+    diputado4 = crearPersona("24055505-4", "Rene Puentes", 43, "Salud", 0, "diputado");
+    diputado5 = crearPersona("21777777-7", "Jorge El Flaco Johnson", 21, "Educacion", 0, "diputado");
 
     proceso->congreso = (struct congreso *) malloc(sizeof(struct congreso)); // inicializar congreso
-    proceso->congreso->camaraDeOrigen = (struct camaraDeOrigen *) malloc(sizeof(struct camaraDeOrigen)); // inicializar camara de origen
-    proceso->congreso->camaraDeOrigen->diputados = NULL; // inicializar lista de diputados
+    proceso->congreso->diputados = NULL; // inicializar lista de diputados
 
-    proceso->congreso->camaraDeOrigen->diputados = agregarDiputado(proceso->congreso->camaraDeOrigen->diputados, diputado1);
-    proceso->congreso->camaraDeOrigen->diputados = agregarDiputado(proceso->congreso->camaraDeOrigen->diputados, diputado2);
-    proceso->congreso->camaraDeOrigen->diputados = agregarDiputado(proceso->congreso->camaraDeOrigen->diputados, diputado3);
-    proceso->congreso->camaraDeOrigen->diputados = agregarDiputado(proceso->congreso->camaraDeOrigen->diputados, diputado4);
-    proceso->congreso->camaraDeOrigen->diputados = agregarDiputado(proceso->congreso->camaraDeOrigen->diputados, diputado5);
+    proceso->congreso->diputados = agregarDiputado(proceso->congreso->diputados, diputado1);
+    proceso->congreso->diputados = agregarDiputado(proceso->congreso->diputados, diputado2);
+    proceso->congreso->diputados = agregarDiputado(proceso->congreso->diputados, diputado3);
+    proceso->congreso->diputados = agregarDiputado(proceso->congreso->diputados, diputado4);
+    proceso->congreso->diputados = agregarDiputado(proceso->congreso->diputados, diputado5);
 
-    mostrarDiputados(proceso->congreso->camaraDeOrigen->diputados);
+    mostrarDiputados(proceso->congreso->diputados);
 
     return 0;
 }
