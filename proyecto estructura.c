@@ -109,6 +109,48 @@ void limpiarBuffer() {
         // Vaciar el buffer
     }
 }
+struct nodoCiudadano *crearNodoCiudadano(struct persona *ciudadano) {
+    struct nodoCiudadano *nuevoCiudadano;
+    nuevoCiudadano = (struct nodoCiudadano *) malloc(sizeof(struct nodoCiudadano));
+    nuevoCiudadano->datos = ciudadano;
+    nuevoCiudadano->ant = nuevoCiudadano->sig = NULL;
+    return nuevoCiudadano;
+}
+
+struct nodoCiudadano *agregarCiudadano(struct nodoCiudadano *ciudadanos, struct persona *ciudadano) {
+    struct nodoCiudadano *nuevoCiudadano = crearNodoCiudadano(ciudadano);
+
+    if (ciudadanos == NULL) {
+        ciudadanos = nuevoCiudadano;
+    } else {
+        struct nodoCiudadano *rec = ciudadanos;
+        while (rec->sig != NULL) {
+            rec = rec->sig;
+        }
+        rec->sig = nuevoCiudadano;
+        nuevoCiudadano->ant = rec;
+    }
+
+    return ciudadanos;
+}
+
+void mostrarCiudadanos(struct nodoCiudadano *ciudadanos) {
+    if (ciudadanos == NULL) {
+        printf("No hay ciudadanos en la lista.\n");
+        return;
+    }
+
+    struct nodoCiudadano *rec = ciudadanos;
+    while (rec != NULL) {
+        printf("Nombre: %s\n", rec->datos->nombre);
+        printf("RUT: %s\n", rec->datos->rut);
+        printf("Edad: %d\n", rec->datos->edad);
+        printf("Especialidad: %s\n", rec->datos->especialidad);
+        printf("Voto: %d\n", rec->datos->voto);
+        printf("Cargo: %s\n\n", rec->datos->cargo);
+        rec = rec->sig;
+    }
+}
 
 struct persona *crearPersona(char *rut, char *nombre, int edad, char *especialidad, int voto, char*cargo){
 
@@ -145,18 +187,21 @@ struct nodoDiputado *crearNodoDiputado(struct persona *diputado){
     return nuevoDiputado;
 }
 
-struct nodoDiputado *agregarDiputado (struct nodoDiputado *diputados, struct persona *diputado){
-    struct nodoDiputado *nuevoDiputado;
-    nuevoDiputado = crearNodoDiputado(diputado);
-    nuevoDiputado->headDiputados = diputado;
+struct nodoDiputado *agregarDiputado(struct nodoDiputado *diputados, struct nodoCiudadano *ciudadanos, char *rut) {
+    struct persona *ciudadano = buscarCiudadanoPorRUT(ciudadanos, rut);
+    
+    if (ciudadano == NULL) {
+        printf("Ciudadano con RUT %s no encontrado.\n", rut);
+        return diputados;
+    }
 
-    if(diputados == NULL){
+    struct nodoDiputado *nuevoDiputado = crearNodoDiputado(ciudadano);
+
+    if (diputados == NULL) {
         diputados = nuevoDiputado;
-        nuevoDiputado->ant = nuevoDiputado;
-        nuevoDiputado->sig = nuevoDiputado;
     } else {
         struct nodoDiputado *rec = diputados;
-        while(rec->sig != diputados){
+        while (rec->sig != diputados) {
             rec = rec->sig;
         }
         rec->sig = nuevoDiputado;
@@ -166,6 +211,7 @@ struct nodoDiputado *agregarDiputado (struct nodoDiputado *diputados, struct per
     }
     return diputados;
 }
+
 
 void mostrarDiputados(struct nodoDiputado *diputados){
     struct nodoDiputado *rec = diputados;
@@ -206,8 +252,15 @@ struct nodoSenador *crearNodoSenador(struct persona *senador) {
 }
 
 /* Función para agregar un senador */
-struct nodoSenador *agregarSenador(struct nodoSenador *senadores, struct persona *senador) {
-    struct nodoSenador *nuevoSenador = crearNodoSenador(senador);
+struct nodoSenador *agregarSenador(struct nodoSenador *senadores, struct nodoCiudadano *ciudadanos, char *rut) {
+    struct persona *ciudadano = buscarCiudadanoPorRUT(ciudadanos, rut);
+
+    if (ciudadano == NULL) {
+        printf("Ciudadano con RUT %s no encontrado.\n", rut);
+        return senadores;
+    }
+
+    struct nodoSenador *nuevoSenador = crearNodoSenador(ciudadano);
 
     if (senadores == NULL) {
         senadores = nuevoSenador;
@@ -258,7 +311,16 @@ void mostrarPresidente(struct presidente *presidente) {
     printf("Voto: %d\n", presidente->voto);
     printf("================================\n");
 }
-
+struct persona *buscarCiudadanoPorRUT(struct nodoCiudadano *ciudadanos, char *rut) {
+    struct nodoCiudadano *rec = ciudadanos;
+    while (rec != NULL) {
+        if (strcmp(rec->datos->rut, rut) == 0) {
+            return rec->datos;
+        }
+        rec = rec->sig;
+    }
+    return NULL;
+}
 
 void camaraDeOrigen(struct propuesta *propuesta, struct congreso *congreso) {
     // Verificar si el proyecto debe iniciar en la Cámara de Diputados o en el Senado
@@ -485,30 +547,30 @@ void camaraRevisora(struct propuesta *propuesta, struct congreso *congreso) {
 
 void mostrarMenu() {
     printf("\n===== Menu =====\n");
-    printf("1. Crear Persona\n");
-    printf("2. Agregar Diputado\n");
-    printf("3. Mostrar Diputados\n");
-    printf("4. Agregar Presidente\n");
-    printf("5. Agregar Senador\n");  // Nueva opción añadida aquí
+    printf("1. Crear Ciudadano\n");
+    printf("2. Mostrar Ciudadanos\n");
+    printf("3. Agregar Diputado\n");
+    printf("4. Mostrar Diputados\n");
+    printf("5. Agregar Senador\n");
     printf("6. Mostrar Senadores\n");
-    printf("7. Mostrar Presidente\n");
-    printf("8. Crear Propuesta\n");
-    printf("9. Mostrar Propuesta\n");
-    printf("10. Iniciar Cámara de Origen\n");
-    printf("11. Iniciar Cámara Revisora\n");
-    printf("12. Eliminar Diputado\n");
-    printf("13. Eliminar Senador\n");
-    printf("14. Salir\n");
+    printf("7. Agregar Presidente\n");
+    printf("8. Mostrar Presidente\n");
+    printf("9. Crear Propuesta\n");
+    printf("10. Mostrar Propuesta\n");
+    printf("11. Iniciar Cámara de Origen\n");
+    printf("12. Iniciar Cámara Revisora\n");
+    printf("13. Eliminar Diputado\n");
+    printf("14. Eliminar Senador\n");
+    printf("15. Salir\n");
     printf("================\n");
 }
 
 int main() {
     struct nodoDiputado *diputados = NULL;
     struct nodoSenador *senadores = NULL;
+    struct nodoCiudadano *ciudadanos = NULL;
     struct presidente *presidente = NULL;
     struct propuesta *propuesta = NULL;
-    struct persona *autor = NULL;  // Persona que será el autor de la propuesta
-    struct congreso congreso = {senadores, diputados};
 
     int opcion;
     char rut[20], nombre[50], especialidad[50], cargo[20];
@@ -522,7 +584,7 @@ int main() {
         limpiarBuffer();
 
         if (opcion == 1) {
-            // Crear Persona
+            // Crear Ciudadano
             printf("Ingresa el RUT: ");
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
@@ -539,7 +601,7 @@ int main() {
             fgets(especialidad, sizeof(especialidad), stdin);
             especialidad[strcspn(especialidad, "\n")] = '\0';
 
-            printf("Ingresa el cargo (Diputado/Senador): ");
+            printf("Ingresa el cargo (Diputado/Senador/Ciudadano): ");
             fgets(cargo, sizeof(cargo), stdin);
             cargo[strcspn(cargo, "\n")] = '\0';
 
@@ -547,95 +609,45 @@ int main() {
             scanf("%d", &voto);
             limpiarBuffer();
 
-            autor = crearPersona(rut, nombre, edad, especialidad, voto, cargo);
-            printf("Persona creada exitosamente.\n");
+            struct persona *ciudadano = crearPersona(rut, nombre, edad, especialidad, voto, cargo);
+            ciudadanos = agregarCiudadano(ciudadanos, ciudadano);
+            printf("Ciudadano agregado exitosamente.\n");
         }
         else if (opcion == 2) {
-            // Agregar Diputado
-            if (autor == NULL) {
-                printf("Primero debes crear una persona.\n");
-            } else {
-                diputados = agregarDiputado(diputados, autor);
-                printf("Diputado agregado exitosamente.\n");
-            }
+            // Mostrar Ciudadanos
+            mostrarCiudadanos(ciudadanos);
         }
         else if (opcion == 3) {
+            // Agregar Diputado
+            printf("Ingresa el RUT del ciudadano a agregar como diputado: ");
+            fgets(rut, sizeof(rut), stdin);
+            rut[strcspn(rut, "\n")] = '\0';
+            diputados = agregarDiputado(diputados, ciudadanos, rut);
+        }
+        else if (opcion == 4) {
             // Mostrar Diputados
             mostrarDiputados(diputados);
         }
-        else if (opcion == 4) {
-            // Agregar Presidente
-            if (autor == NULL) {
-                printf("Primero debes crear una persona.\n");
-            } else {
-                printf("Ingresa el año de mandato: ");
-                scanf("%d", &anioMandato);
-                limpiarBuffer();
-
-                presidente = crearPresidente(autor, anioMandato, autor->voto);
-                printf("Presidente agregado exitosamente.\n");
-            }
-        }
         else if (opcion == 5) {
             // Agregar Senador
-            if (autor == NULL) {
-                printf("Primero debes crear una persona.\n");
-            } else {
-                senadores = agregarSenador(senadores, autor);
-                printf("Senador agregado exitosamente.\n");
-            }
+            printf("Ingresa el RUT del ciudadano a agregar como senador: ");
+            fgets(rut, sizeof(rut), stdin);
+            rut[strcspn(rut, "\n")] = '\0';
+            senadores = agregarSenador(senadores, ciudadanos, rut);
         }
         else if (opcion == 6) {
             // Mostrar Senadores
             mostrarSenadores(senadores);
         }
         else if (opcion == 7) {
+            // Agregar Presidente
+            // Agregar lógica de presidente
+        }
+        else if (opcion == 8) {
             // Mostrar Presidente
             mostrarPresidente(presidente);
         }
-        else if (opcion == 8) {
-            // Crear Propuesta
-            if (autor == NULL) {
-                printf("Primero debes crear una persona que será el autor de la propuesta.\n");
-            } else {
-                propuesta = crearPropuesta(autor);
-            }
-        }
-        else if (opcion == 9) {
-            // Mostrar Propuesta
-            mostrarPropuesta(propuesta);
-        }
-        else if (opcion == 10) {
-            // Iniciar Cámara de Origen
-            if (propuesta == NULL) {
-                printf("Primero debes crear una propuesta para iniciar la Cámara de Origen.\n");
-            } else {
-                camaraDeOrigen(propuesta, &congreso);
-            }
-        }
-        else if (opcion == 11) {
-            // Iniciar Cámara Revisora
-            if (propuesta == NULL) {
-                printf("Primero debes crear una propuesta para iniciar la Cámara Revisora.\n");
-            } else {
-                camaraRevisora(propuesta, &congreso);
-            }
-        }
-        else if (opcion == 12) {
-            // Eliminar Diputado
-            printf("Ingresa el RUT del diputado a eliminar: ");
-            fgets(rut, sizeof(rut), stdin);
-            rut[strcspn(rut, "\n")] = '\0';
-            diputados = eliminarDiputado(diputados, rut);
-        }
-        else if (opcion == 13) {
-            // Eliminar Senador
-            printf("Ingresa el RUT del senador a eliminar: ");
-            fgets(rut, sizeof(rut), stdin);
-            rut[strcspn(rut, "\n")] = '\0';
-            senadores = eliminarSenador(senadores, rut);
-        }
-        else if (opcion == 14) {
+        else if (opcion == 15) {
             printf("Saliendo del programa...\n");
             salir = 1;
         } 
