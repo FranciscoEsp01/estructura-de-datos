@@ -546,6 +546,93 @@ void camaraRevisora(struct propuesta *propuesta, struct congreso *congreso) {
     }
 }
 
+/* Función Promulgación y Veto Presidencial */
+void promulgacionOVetoPresidencial(struct presidente *presidente, struct propuesta *propuesta, struct congreso *congreso) {
+    if (presidente == NULL) {
+        printf("No hay un presidente registrado.\n");
+        return;
+    }
+
+    int decisionPresidencial;
+    printf("El presidente %s está evaluando la propuesta \"%s\" (ID: %d).\n", presidente->persona->nombre, propuesta->tema, propuesta->id);
+    printf("¿Cuál es la decisión del presidente?\n");
+    printf("1. Promulgar la ley\n");
+    printf("2. Veto total (rechazar todo el proyecto)\n");
+    printf("3. Veto parcial (sugerir modificaciones a ciertos artículos)\n");
+    printf("Elige una opción: ");
+    scanf("%d", &decisionPresidencial);
+
+    // Decisión presidencial
+    if (decisionPresidencial == 1) {
+        printf("El presidente %s ha promulgado la propuesta \"%s\" como ley.\n", presidente->persona->nombre, propuesta->tema);
+    } 
+    else if (decisionPresidencial == 2) {
+        printf("El presidente %s ha vetado totalmente la propuesta \"%s\".\n", presidente->persona->nombre, propuesta->tema);
+        printf("El proyecto ha sido rechazado por el presidente y no avanzará.\n");
+    } 
+    else if (decisionPresidencial == 3) {
+        printf("El presidente %s ha vetado parcialmente la propuesta \"%s\" y ha sugerido modificaciones.\n", presidente->persona->nombre, propuesta->tema);
+        
+        int decisionCongreso;
+        printf("El Congreso debe decidir si acepta las modificaciones.\n");
+        printf("1. Aceptar las modificaciones del presidente\n");
+        printf("2. Rechazar el veto con una mayoría de dos tercios\n");
+        printf("Elige una opción: ");
+        scanf("%d", &decisionCongreso);
+
+        if (decisionCongreso == 1) {
+            printf("El Congreso ha aceptado las modificaciones. La ley ha sido promulgada con los cambios sugeridos por el presidente.\n");
+        } 
+        else if (decisionCongreso == 2) {
+            int votosFavor = 0, votosContra = 0, votosTotales = 0;
+
+            struct nodoDiputado *recDiputado = congreso->diputados;
+            struct nodoSenador *recSenador = congreso->senadores;
+
+            if (recDiputado != NULL) {
+                do {
+                    votosTotales++;
+                    if (recDiputado->headDiputados->voto == 1) {
+                        votosFavor++;
+                    } else {
+                        votosContra++;
+                    }
+                    recDiputado = recDiputado->sig;
+                } while (recDiputado != congreso->diputados);
+            }
+
+            if (recSenador != NULL) {
+                do {
+                    votosTotales++;
+                    if (recSenador->headSenadores->voto == 1) {
+                        votosFavor++;
+                    } else {
+                        votosContra++;
+                    }
+                    recSenador = recSenador->sig;
+                } while (recSenador != congreso->senadores);
+            }
+
+            if ((votosFavor * 3) >= (votosTotales * 2)) {
+                printf("El Congreso ha rechazado el veto con una mayoría de dos tercios.\n");
+                printf("La propuesta será promulgada tal como fue aprobada por el Congreso.\n");
+            } 
+            else {
+                printf("El Congreso no logró una mayoría de dos tercios. La propuesta será modificada según las sugerencias del presidente.\n");
+            }
+        } 
+        else {
+            printf("Opción no válida.\n");
+        }
+    } 
+    else {
+        printf("Opción no válida. El proceso se cancela.\n");
+    }
+}
+
+/* Otras funciones del código (omitidas por brevedad) */
+
+/* Función mostrarMenu con nueva opción para veto presidencial */
 void mostrarMenu() {
     printf("\n===== Menu =====\n");
     printf("1. Crear Ciudadano\n");
@@ -560,9 +647,10 @@ void mostrarMenu() {
     printf("10. Mostrar Propuesta\n");
     printf("11. Iniciar Cámara de Origen\n");
     printf("12. Iniciar Cámara Revisora\n");
-    printf("13. Eliminar Diputado\n");
-    printf("14. Eliminar Senador\n");
-    printf("15. Salir\n");
+    printf("13. Promulgación o Veto Presidencial\n");  // Nueva opción agregada aquí
+    printf("14. Eliminar Diputado\n");
+    printf("15. Eliminar Senador\n");
+    printf("16. Salir\n");
     printf("================\n");
 }
 
@@ -572,6 +660,7 @@ int main() {
     struct nodoCiudadano *ciudadanos = NULL;
     struct presidente *presidente = NULL;
     struct propuesta *propuesta = NULL;
+    struct congreso congreso = {senadores, diputados}; // Estructura para el congreso
 
     int opcion;
     char rut[20], nombre[50], especialidad[50], cargo[20];
@@ -613,46 +702,110 @@ int main() {
             struct persona *ciudadano = crearPersona(rut, nombre, edad, especialidad, voto, cargo);
             ciudadanos = agregarCiudadano(ciudadanos, ciudadano);
             printf("Ciudadano agregado exitosamente.\n");
-        }
-        else if (opcion == 2) {
+
+        } else if (opcion == 2) {
             // Mostrar Ciudadanos
             mostrarCiudadanos(ciudadanos);
-        }
-        else if (opcion == 3) {
+
+        } else if (opcion == 3) {
             // Agregar Diputado
             printf("Ingresa el RUT del ciudadano a agregar como diputado: ");
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
             diputados = agregarDiputado(diputados, ciudadanos, rut);
-        }
-        else if (opcion == 4) {
+
+        } else if (opcion == 4) {
             // Mostrar Diputados
             mostrarDiputados(diputados);
-        }
-        else if (opcion == 5) {
+
+        } else if (opcion == 5) {
             // Agregar Senador
             printf("Ingresa el RUT del ciudadano a agregar como senador: ");
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
             senadores = agregarSenador(senadores, ciudadanos, rut);
-        }
-        else if (opcion == 6) {
+
+        } else if (opcion == 6) {
             // Mostrar Senadores
             mostrarSenadores(senadores);
-        }
-        else if (opcion == 7) {
+
+        } else if (opcion == 7) {
             // Agregar Presidente
-            // Agregar lógica de presidente
-        }
-        else if (opcion == 8) {
+            printf("Ingresa el RUT del presidente: ");
+            fgets(rut, sizeof(rut), stdin);
+            rut[strcspn(rut, "\n")] = '\0';
+
+            struct persona *personaPresidente = buscarCiudadanoPorRUT(ciudadanos, rut);
+            if (personaPresidente == NULL) {
+                printf("El ciudadano con RUT %s no existe.\n", rut);
+            } else {
+                printf("Ingresa el año de mandato del presidente: ");
+                scanf("%d", &anioMandato);
+                limpiarBuffer();
+
+                presidente = crearPresidente(personaPresidente, anioMandato, personaPresidente->voto);
+                printf("Presidente agregado exitosamente.\n");
+            }
+
+        } else if (opcion == 8) {
             // Mostrar Presidente
             mostrarPresidente(presidente);
-        }
-        else if (opcion == 15) {
+
+        } else if (opcion == 9) {
+            // Crear Propuesta
+            if (presidente == NULL) {
+                printf("Primero debes agregar un presidente para asignar una propuesta.\n");
+            } else {
+                propuesta = crearPropuesta(presidente->persona);
+            }
+
+        } else if (opcion == 10) {
+            // Mostrar Propuesta
+            mostrarPropuesta(propuesta);
+
+        } else if (opcion == 11) {
+            // Iniciar Cámara de Origen
+            if (propuesta == NULL) {
+                printf("Primero debes crear una propuesta para iniciar la Cámara de Origen.\n");
+            } else {
+                camaraDeOrigen(propuesta, &congreso);
+            }
+
+        } else if (opcion == 12) {
+            // Iniciar Cámara Revisora
+            if (propuesta == NULL) {
+                printf("Primero debes crear una propuesta para iniciar la Cámara Revisora.\n");
+            } else {
+                camaraRevisora(propuesta, &congreso);
+            }
+
+        } else if (opcion == 13) {
+            // Promulgación o Veto Presidencial
+            if (presidente == NULL || propuesta == NULL) {
+                printf("Se necesita tanto un presidente como una propuesta para proceder con la promulgación o veto.\n");
+            } else {
+                promulgacionOVetoPresidencial(presidente, propuesta, &congreso);
+            }
+
+        } else if (opcion == 14) {
+            // Eliminar Diputado
+            printf("Ingresa el RUT del diputado a eliminar: ");
+            fgets(rut, sizeof(rut), stdin);
+            rut[strcspn(rut, "\n")] = '\0';
+            diputados = eliminarDiputado(diputados, rut);
+
+        } else if (opcion == 15) {
+            // Eliminar Senador
+            printf("Ingresa el RUT del senador a eliminar: ");
+            fgets(rut, sizeof(rut), stdin);
+            rut[strcspn(rut, "\n")] = '\0';
+            senadores = eliminarSenador(senadores, rut);
+
+        } else if (opcion == 16) {
             printf("Saliendo del programa...\n");
             salir = 1;
-        } 
-        else {
+
+        } else {
             printf("Opción no válida. Por favor, intenta de nuevo.\n");
         }
     } while (!salir);
