@@ -31,6 +31,12 @@ Francisco Espinoza
     ### SE DEBE CAMBIAR EL AGREGAR _____ YA QUE TOMA LA ULTIMA PERSONA REGISTRADA ###
 */
 
+/* cambio 1.5
+Joaquin Muñoz
+    se agrego la funcion promulgacion o veto presidencial
+    se agregó la funcion al menú
+*/
+
 struct ProcesoLegislativo{
   struct presidente *presidente;
   struct congreso *congreso;
