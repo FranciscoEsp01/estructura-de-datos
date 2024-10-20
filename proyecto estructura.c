@@ -15,6 +15,7 @@
     
 */
 /* cambio 1.3
+Francisco Espinoza
     se elimina tribunal constitucional ya que no es parte de la problematica del trabajo
     se elimina Struct camaraDeOrigen ya que pasara a ser una funcion dependiente del tema del proyecto y pasara a ser struct congreso
     se agrega "Cargo" dentro del struct persona para diferenciar diputados y senadores
