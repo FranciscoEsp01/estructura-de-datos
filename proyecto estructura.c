@@ -21,6 +21,15 @@ Francisco Espinoza
     se agrega "Cargo" dentro del struct persona para diferenciar diputados y senadores
     se agrego funcion camaraRevisoria (POR REVISAR) la cual puede que no cumpla con lo propuesto o que funcione con fallas etc.
 */
+/* cambio 1.4
+Francisco Espinoza
+    se agrego el eliminar diputado
+    se agrego el eliminar senador
+    se agrego el agregar senador
+    se amplio el menu a 14 funciones
+    se actualizo el main
+    ### SE DEBE CAMBIAR EL AGREGAR _____ YA QUE TOMA LA ULTIMA PERSONA REGISTRADA ###
+*/
 
 struct ProcesoLegislativo{
   struct presidente *presidente;
@@ -215,6 +224,7 @@ struct nodoSenador *agregarSenador(struct nodoSenador *senadores, struct persona
     return senadores;
 }
 
+
 /* Función para mostrar senadores */
 void mostrarSenadores(struct nodoSenador *senadores) {
     if (senadores == NULL) {
@@ -348,6 +358,76 @@ void mostrarPropuesta(struct propuesta *propuesta){
 
 }
 
+struct nodoDiputado *eliminarDiputado(struct nodoDiputado *diputados, char *rut) {
+    if (diputados == NULL) {
+        printf("La lista de diputados está vacía.\n");
+        return NULL;
+    }
+
+    struct nodoDiputado *rec = diputados;
+
+    // Buscar el diputado por RUT
+    do {
+        if (strcmp(rec->headDiputados->rut, rut) == 0) {
+            // Si es el único diputado en la lista
+            if (rec->sig == rec && rec->ant == rec) {
+                printf("Diputado eliminado correctamente (solo quedaba un diputado).\n");
+                return NULL;
+            }
+
+            // Si es el diputado a eliminar y no es el único
+            rec->ant->sig = rec->sig;
+            rec->sig->ant = rec->ant;
+
+            if (rec == diputados) {
+                diputados = rec->sig; // Si es el primer diputado
+            }
+
+            printf("Diputado eliminado correctamente.\n");
+            return diputados;
+        }
+        rec = rec->sig;
+    } while (rec != diputados);
+
+    printf("Diputado no encontrado.\n");
+    return diputados;
+}
+
+struct nodoSenador *eliminarSenador(struct nodoSenador *senadores, char *rut) {
+    if (senadores == NULL) {
+        printf("La lista de senadores está vacía.\n");
+        return NULL;
+    }
+
+    struct nodoSenador *rec = senadores;
+
+    // Buscar el senador por RUT
+    do {
+        if (strcmp(rec->headSenadores->rut, rut) == 0) {
+            // Si es el único senador en la lista
+            if (rec->sig == rec && rec->ant == rec) {
+                printf("Senador eliminado correctamente (solo quedaba un senador).\n");
+                return NULL;
+            }
+
+            // Si es el senador a eliminar y no es el único
+            rec->ant->sig = rec->sig;
+            rec->sig->ant = rec->ant;
+
+            if (rec == senadores) {
+                senadores = rec->sig; // Si es el primer senador
+            }
+
+            printf("Senador eliminado correctamente.\n");
+            return senadores;
+        }
+        rec = rec->sig;
+    } while (rec != senadores);
+
+    printf("Senador no encontrado.\n");
+    return senadores;
+}
+
 /* Función para manejar la Cámara Revisora */
 void camaraRevisora(struct propuesta *propuesta, struct congreso *congreso) {
     printf("La propuesta ha llegado a la Cámara Revisora.\n");
@@ -409,16 +489,18 @@ void mostrarMenu() {
     printf("2. Agregar Diputado\n");
     printf("3. Mostrar Diputados\n");
     printf("4. Agregar Presidente\n");
-    printf("5. Mostrar Senadores\n");
-    printf("6. Mostrar Presidente\n");
-    printf("7. Crear Propuesta\n");
-    printf("8. Mostrar Propuesta\n");
-    printf("9. Iniciar Cámara de Origen\n");
-    printf("10. Iniciar Cámara Revisora\n");
-    printf("11. Salir\n");
+    printf("5. Agregar Senador\n");  // Nueva opción añadida aquí
+    printf("6. Mostrar Senadores\n");
+    printf("7. Mostrar Presidente\n");
+    printf("8. Crear Propuesta\n");
+    printf("9. Mostrar Propuesta\n");
+    printf("10. Iniciar Cámara de Origen\n");
+    printf("11. Iniciar Cámara Revisora\n");
+    printf("12. Eliminar Diputado\n");
+    printf("13. Eliminar Senador\n");
+    printf("14. Salir\n");
     printf("================\n");
 }
-
 
 int main() {
     struct nodoDiputado *diputados = NULL;
@@ -440,6 +522,7 @@ int main() {
         limpiarBuffer();
 
         if (opcion == 1) {
+            // Crear Persona
             printf("Ingresa el RUT: ");
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
@@ -466,32 +549,93 @@ int main() {
 
             autor = crearPersona(rut, nombre, edad, especialidad, voto, cargo);
             printf("Persona creada exitosamente.\n");
-        } 
+        }
+        else if (opcion == 2) {
+            // Agregar Diputado
+            if (autor == NULL) {
+                printf("Primero debes crear una persona.\n");
+            } else {
+                diputados = agregarDiputado(diputados, autor);
+                printf("Diputado agregado exitosamente.\n");
+            }
+        }
+        else if (opcion == 3) {
+            // Mostrar Diputados
+            mostrarDiputados(diputados);
+        }
+        else if (opcion == 4) {
+            // Agregar Presidente
+            if (autor == NULL) {
+                printf("Primero debes crear una persona.\n");
+            } else {
+                printf("Ingresa el año de mandato: ");
+                scanf("%d", &anioMandato);
+                limpiarBuffer();
+
+                presidente = crearPresidente(autor, anioMandato, autor->voto);
+                printf("Presidente agregado exitosamente.\n");
+            }
+        }
+        else if (opcion == 5) {
+            // Agregar Senador
+            if (autor == NULL) {
+                printf("Primero debes crear una persona.\n");
+            } else {
+                senadores = agregarSenador(senadores, autor);
+                printf("Senador agregado exitosamente.\n");
+            }
+        }
+        else if (opcion == 6) {
+            // Mostrar Senadores
+            mostrarSenadores(senadores);
+        }
         else if (opcion == 7) {
+            // Mostrar Presidente
+            mostrarPresidente(presidente);
+        }
+        else if (opcion == 8) {
+            // Crear Propuesta
             if (autor == NULL) {
                 printf("Primero debes crear una persona que será el autor de la propuesta.\n");
             } else {
                 propuesta = crearPropuesta(autor);
             }
-        } 
-        else if (opcion == 8) {
-            mostrarPropuesta(propuesta);
-        } 
+        }
         else if (opcion == 9) {
+            // Mostrar Propuesta
+            mostrarPropuesta(propuesta);
+        }
+        else if (opcion == 10) {
+            // Iniciar Cámara de Origen
             if (propuesta == NULL) {
                 printf("Primero debes crear una propuesta para iniciar la Cámara de Origen.\n");
             } else {
                 camaraDeOrigen(propuesta, &congreso);
             }
-        } 
-        else if (opcion == 10) {
+        }
+        else if (opcion == 11) {
+            // Iniciar Cámara Revisora
             if (propuesta == NULL) {
                 printf("Primero debes crear una propuesta para iniciar la Cámara Revisora.\n");
             } else {
                 camaraRevisora(propuesta, &congreso);
             }
-        } 
-        else if (opcion == 11) {
+        }
+        else if (opcion == 12) {
+            // Eliminar Diputado
+            printf("Ingresa el RUT del diputado a eliminar: ");
+            fgets(rut, sizeof(rut), stdin);
+            rut[strcspn(rut, "\n")] = '\0';
+            diputados = eliminarDiputado(diputados, rut);
+        }
+        else if (opcion == 13) {
+            // Eliminar Senador
+            printf("Ingresa el RUT del senador a eliminar: ");
+            fgets(rut, sizeof(rut), stdin);
+            rut[strcspn(rut, "\n")] = '\0';
+            senadores = eliminarSenador(senadores, rut);
+        }
+        else if (opcion == 14) {
             printf("Saliendo del programa...\n");
             salir = 1;
         } 
