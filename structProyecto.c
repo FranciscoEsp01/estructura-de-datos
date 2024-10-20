@@ -161,53 +161,72 @@ void mostrarDiputados(struct nodoDiputado *diputados){
         rec = rec->sig;
     } while (rec != diputados);
 }
+// Definición de structs y funciones omitida para abreviar (ya la tienes en el código)
 
-int main () {
-    struct ProcesoLegislativo *proceso;
-    struct presidente presidente;
-    struct persona *diputado1, *diputado2, *diputado3, *diputado4, *diputado5;
-    
-    proceso = (struct ProcesoLegislativo *) malloc(sizeof(struct ProcesoLegislativo));
-    
-    proceso->presidente = NULL;
-    proceso->congreso = NULL;
-    proceso->propuesta = NULL;
-    proceso->ciudadanos = NULL;
-    proceso->tc = NULL;
-    proceso->boletinEstado = NULL;
+void mostrarMenu() {
+    printf("\n===== Menu =====\n");
+    printf("1. Crear Persona\n");
+    printf("2. Agregar Diputado\n");
+    printf("3. Mostrar Diputados\n");
+    printf("4. Salir\n");
+    printf("================\n");
+}
 
+int main() {
+    struct nodoDiputado *diputados = NULL;
+    int opcion;
+    char rut[20], nombre[50], especialidad[50], cargo[20];
+    int edad, voto;
 
-    /* datos de prueba */
+    do {
+        mostrarMenu();
+        printf("Elige una opción: ");
+        scanf("%d", &opcion);
 
-    proceso->presidente = (struct presidente *) malloc(sizeof(struct presidente));
-    proceso->presidente->nombre = strdup("Sebastian Pinera");
-    proceso->presidente->edad = 70;
-    proceso->presidente->anioMandato = 2018;
-    proceso->presidente->voto = 1;
+        switch(opcion) {
+            case 1:
+                printf("Ingresa el RUT: ");
+                scanf("%s", rut);
+                printf("Ingresa el nombre: ");
+                scanf("%s", nombre);
+                printf("Ingresa la edad: ");
+                scanf("%d", &edad);
+                printf("Ingresa la especialidad: ");
+                scanf("%s", especialidad);
+                printf("Ingresa el cargo (Diputado/Senador): ");
+                scanf("%s", cargo);
+                printf("Ingresa el voto (1=afirmativo, 0=negativo): ");
+                scanf("%d", &voto);
 
-    printf("Nombre presidente: %s\n", proceso->presidente->nombre);
-    printf("Edad presidente: %d\n", proceso->presidente->edad);
-    printf("Anio mandato presidente: %d\n\n", proceso->presidente->anioMandato);
+                struct persona *nuevaPersona = crearPersona(rut, nombre, edad, especialidad, voto, cargo);
+                printf("Persona creada exitosamente.\n");
+                break;
 
+            case 2: 
+                printf("Ingresa el RUT de la persona que deseas agregar como diputado: ");
+                scanf("%s", rut); // Para simplificar se usa el mismo flujo de crearPersona. Debes tener una persona creada
+                // Aquí se debería verificar que la persona fue creada (implementación opcional)
+                struct persona *diputado = crearPersona(rut, nombre, edad, especialidad, voto, cargo); // En un escenario real, ya tendrías esta persona.
+                diputados = agregarDiputado(diputados, diputado);
+                printf("Diputado agregado exitosamente.\n");
+                break;
 
-    /* diputados de prueba, formato {rut, nombre, edad, especialidad, voto}, esto para agregar/quitarlos del proceso legislativo */
+            case 3:
+                if(diputados == NULL) {
+                    printf("No hay diputados en la lista.\n");
+                } else {
+                    mostrarDiputados(diputados);
+                }
+                break;
 
-    diputado1 = crearPersona("21777777-6", "Rodrigo Teniente", 30, "Educacion", 0, "diputado");
-    diputado2 = crearPersona("15325949-K", "Juan Perez", 50, "Economia", 0, "diputado");
-    diputado3 = crearPersona("93429349-6", "Jorge Fernandez", 37, "Trabajo", 0, "diputado");
-    diputado4 = crearPersona("24055505-4", "Rene Puentes", 43, "Salud", 0, "diputado");
-    diputado5 = crearPersona("21777777-7", "Jorge El Flaco Johnson", 21, "Educacion", 0, "diputado");
+            case 4:
+                printf("Saliendo del programa...\n");
+                break;
 
-    proceso->congreso = (struct congreso *) malloc(sizeof(struct congreso)); // inicializar congreso
-    proceso->congreso->diputados = NULL; // inicializar lista de diputados
-
-    proceso->congreso->diputados = agregarDiputado(proceso->congreso->diputados, diputado1);
-    proceso->congreso->diputados = agregarDiputado(proceso->congreso->diputados, diputado2);
-    proceso->congreso->diputados = agregarDiputado(proceso->congreso->diputados, diputado3);
-    proceso->congreso->diputados = agregarDiputado(proceso->congreso->diputados, diputado4);
-    proceso->congreso->diputados = agregarDiputado(proceso->congreso->diputados, diputado5);
-
-    mostrarDiputados(proceso->congreso->diputados);
+            default:
+                printf("Opción no válida. Por favor, intenta de nuevo.\n");
+        }
+    } while (opcion != 4);
 
     return 0;
 }
