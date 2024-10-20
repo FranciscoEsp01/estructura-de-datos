@@ -14,15 +14,11 @@
     mas tarde o mañana voy a hacer para los ciudadanos y senadores, ademas de la funcion de quitar
     
 */
-/* cambio 1.2
+/* cambio 1.3
     se elimina tribunal constitucional ya que no es parte de la problematica del trabajo
     se elimina Struct camaraDeOrigen ya que pasara a ser una funcion dependiente del tema del proyecto y pasara a ser struct congreso
     se agrega "Cargo" dentro del struct persona para diferenciar diputados y senadores
-    se agrego menu para ingresar datos
-    se agrego crear propuesta
-    se agrego crear presidente
-    se agrego limpiar buffer (limpiar salto de linea automatico)
-    se hizo la funcion de camara de origen
+    se agrego funcion camaraRevisoria (POR REVISAR) la cual puede que no cumpla con lo propuesto o que funcione con fallas etc.
 */
 
 struct ProcesoLegislativo{
@@ -97,6 +93,13 @@ struct boletin {
     char *fechaVigencia;
 };
 
+void limpiarBuffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF) {
+        // Vaciar el buffer
+    }
+}
+
 struct persona *crearPersona(char *rut, char *nombre, int edad, char *especialidad, int voto, char*cargo){
 
     struct persona *nuevaPersona;
@@ -167,12 +170,7 @@ void mostrarDiputados(struct nodoDiputado *diputados){
 }
 // Definición de structs y funciones omitida para abreviar (ya la tienes en el código)
 
-void limpiarBuffer() {
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF) {
-        // Vaciar el buffer
-    }
-}
+
 
 struct presidente *crearPresidente(struct persona *persona, int anioMandato, int voto) {
     struct presidente *nuevoPresidente;
@@ -349,6 +347,61 @@ void mostrarPropuesta(struct propuesta *propuesta){
 
 }
 
+/* Función para manejar la Cámara Revisora */
+void camaraRevisora(struct propuesta *propuesta, struct congreso *congreso) {
+    printf("La propuesta ha llegado a la Cámara Revisora.\n");
+
+    printf("Debatiendo en la Cámara Revisora...\n");
+
+    int votosAFavor = 0, votosEnContra = 0;
+    int modificacion = 0;  // Si la Cámara Revisora propone modificaciones
+
+    // Lógica de votación en la Cámara Revisora
+    if (strcmp(propuesta->tipo, "financiero") == 0 || strcmp(propuesta->tipo, "tributario") == 0) {
+        struct nodoSenador *rec = congreso->senadores;
+        if (rec != NULL) {
+            do {
+                if (rec->headSenadores->voto == 1) {
+                    votosAFavor++;
+                } else {
+                    votosEnContra++;
+                }
+                rec = rec->sig;
+            } while (rec != congreso->senadores);
+        }
+    } else {
+        struct nodoDiputado *rec = congreso->diputados;
+        if (rec != NULL) {
+            do {
+                if (rec->headDiputados->voto == 1) {
+                    votosAFavor++;
+                } else {
+                    votosEnContra++;
+                }
+                rec = rec->sig;
+            } while (rec != congreso->diputados);
+        }
+    }
+
+    printf("Resultados de la votación en la Cámara Revisora:\n");
+    printf("Votos a favor: %d\n", votosAFavor);
+    printf("Votos en contra: %d\n", votosEnContra);
+
+    // Simulación de resultado en la Cámara Revisora
+    if (votosAFavor > votosEnContra) {
+        printf("¿La Cámara Revisora propone modificaciones? (1 = Sí, 0 = No): ");
+        scanf("%d", &modificacion);
+
+        if (modificacion == 1) {
+            printf("La Cámara Revisora ha propuesto modificaciones. El proyecto vuelve a la Cámara de Origen.\n");
+        } else {
+            printf("La Cámara Revisora ha aprobado el proyecto sin cambios. Se envía al Presidente para su promulgación.\n");
+        }
+    } else {
+        printf("El proyecto ha sido rechazado en la Cámara Revisora. No se promulga.\n");
+    }
+}
+
 void mostrarMenu() {
     printf("\n===== Menu =====\n");
     printf("1. Crear Persona\n");
@@ -360,7 +413,8 @@ void mostrarMenu() {
     printf("7. Crear Propuesta\n");
     printf("8. Mostrar Propuesta\n");
     printf("9. Iniciar Cámara de Origen\n");
-    printf("10. Salir\n");
+    printf("10. Iniciar Cámara Revisora\n");
+    printf("11. Salir\n");
     printf("================\n");
 }
 
@@ -430,6 +484,13 @@ int main() {
             }
         } 
         else if (opcion == 10) {
+            if (propuesta == NULL) {
+                printf("Primero debes crear una propuesta para iniciar la Cámara Revisora.\n");
+            } else {
+                camaraRevisora(propuesta, &congreso);
+            }
+        } 
+        else if (opcion == 11) {
             printf("Saliendo del programa...\n");
             salir = 1;
         } 
