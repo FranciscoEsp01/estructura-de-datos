@@ -36,7 +36,6 @@ Joaquin Muñoz
     se agrego la funcion promulgacion o veto presidencial
     se agregó la funcion al menú
 */
-
 /* cambio 1.6
 Rigoberto Canales
     se agrega la funcion comision mixta
@@ -44,9 +43,10 @@ Rigoberto Canales
     se hacen cambios en main para el uso de comision mixta
 */
 
-/* cambio 1.7 
-simon ledezma
-    se arregló el código en general para que compile en turbo c
+/* Cambio 1.7
+Francisco Espinoza
+    se modifico la funcion de camara de origen ya que esta no contabilizaba los votos
+    se modifico el main ya que no se inicalizaba bien el Agregar y Mostrar diputados y senadores
 */
 
 struct ProcesoLegislativo{
@@ -153,15 +153,12 @@ struct nodoCiudadano *agregarCiudadano(struct nodoCiudadano *ciudadanos, struct 
 }
 
 void mostrarCiudadanos(struct nodoCiudadano *ciudadanos) {
-    struct nodoCiudadano *rec = NULL;
-    
     if (ciudadanos == NULL) {
         printf("No hay ciudadanos en la lista.\n");
         return;
     }
 
-    rec = ciudadanos;
-    
+    struct nodoCiudadano *rec = ciudadanos;
     while (rec != NULL) {
         printf("Nombre: %s\n", rec->datos->nombre);
         printf("RUT: %s\n", rec->datos->rut);
@@ -221,15 +218,13 @@ struct nodoDiputado *crearNodoDiputado(struct persona *diputado){
 
 struct nodoDiputado *agregarDiputado(struct nodoDiputado *diputados, struct nodoCiudadano *ciudadanos, char *rut) {
     struct persona *ciudadano = buscarCiudadanoPorRUT(ciudadanos, rut);
-    struct nodoDiputado *nuevoDiputado = NULL;
-
     
     if (ciudadano == NULL) {
         printf("Ciudadano con RUT %s no encontrado.\n", rut);
         return diputados;
     }
 
-    nuevoDiputado = crearNodoDiputado(ciudadano);
+    struct nodoDiputado *nuevoDiputado = crearNodoDiputado(ciudadano);
 
     if (diputados == NULL) {
         diputados = nuevoDiputado;
@@ -287,16 +282,14 @@ struct nodoSenador *crearNodoSenador(struct persona *senador) {
 
 /* Función para agregar un senador */
 struct nodoSenador *agregarSenador(struct nodoSenador *senadores, struct nodoCiudadano *ciudadanos, char *rut) {
-    
     struct persona *ciudadano = buscarCiudadanoPorRUT(ciudadanos, rut);
-    struct nodoSenador *nuevoSenador = NULL;
 
     if (ciudadano == NULL) {
         printf("Ciudadano con RUT %s no encontrado.\n", rut);
         return senadores;
     }
 
-    nuevoSenador = crearNodoSenador(ciudadano);
+    struct nodoSenador *nuevoSenador = crearNodoSenador(ciudadano);
 
     if (senadores == NULL) {
         senadores = nuevoSenador;
@@ -316,13 +309,12 @@ struct nodoSenador *agregarSenador(struct nodoSenador *senadores, struct nodoCiu
 
 /* Función para mostrar senadores */
 void mostrarSenadores(struct nodoSenador *senadores) {
-    struct nodoSenador *rec = senadores;
-    
     if (senadores == NULL) {
         printf("No hay senadores en la lista.\n");
         return;
     }
 
+    struct nodoSenador *rec = senadores;
     do {
         printf("Nombre: %s\n", rec->headSenadores->nombre);
         printf("Edad: %d\n", rec->headSenadores->edad);
@@ -350,50 +342,46 @@ void mostrarPresidente(struct presidente *presidente) {
 }
 
 void camaraDeOrigen(struct propuesta *propuesta, struct congreso *congreso) {
-    
     int votosAFavor = 0, votosEnContra = 0;
     
     // Verificar si el proyecto debe iniciar en la Cámara de Diputados o en el Senado
     if (strcmp(propuesta->tipo, "financiero") == 0 || strcmp(propuesta->tipo, "tributario") == 0) {
         printf("El proyecto de tipo %s debe ser discutido primero en la Cámara de Diputados.\n", propuesta->tipo);
-        // Aquí se podría agregar la lógica para derivar a la comisión de diputados
-        // Ejemplo: Enviar a comisión de Hacienda si es financiero
+        
+        // Simular votación de todos los miembros de la Cámara de Diputados
+        struct nodoDiputado *rec = congreso->diputados;
+        if (rec == NULL) {
+            printf("No hay diputados disponibles para votar.\n");
+            return;
+        }
+
+        do {
+            if (rec->headDiputados->voto == 1) {
+                votosAFavor++;
+            } else {
+                votosEnContra++;
+            }
+            rec = rec->sig;
+        } while (rec != congreso->diputados);  // Iteración completa de lista circular de diputados
+        
     } else {
         printf("El proyecto de tipo %s será discutido en el Senado.\n", propuesta->tipo);
-        // Aquí se podría agregar la lógica para derivar a la comisión de senadores
-    }
-
-    // Una vez derivado a la cámara correspondiente, simular el debate
-    printf("Debatiendo la idea de legislar...\n");
-    printf("Votando en la Cámara de Origen...\n");
-
-    // Simular votación de todos los miembros de la cámara de origen
-
-    // Lógica de votación
-    if (strcmp(propuesta->tipo, "financiero") == 0 || strcmp(propuesta->tipo, "tributario") == 0) {
-        struct nodoDiputado *rec = congreso->diputados;
-        if (rec != NULL) {
-            do {
-                if (rec->headDiputados->voto == 1) {
-                    votosAFavor++;
-                } else {
-                    votosEnContra++;
-                }
-                rec = rec->sig;
-            } while (rec != congreso->diputados);
-        }
-    } else {
+        
+        // Simular votación de todos los miembros del Senado
         struct nodoSenador *rec = congreso->senadores;
-        if (rec != NULL) {
-            do {
-                if (rec->headSenadores->voto == 1) {
-                    votosAFavor++;
-                } else {
-                    votosEnContra++;
-                }
-                rec = rec->sig;
-            } while (rec != congreso->senadores);
+        if (rec == NULL) {
+            printf("No hay senadores disponibles para votar.\n");
+            return;
         }
+
+        do {
+            if (rec->headSenadores->voto == 1) {
+                votosAFavor++;
+            } else {
+                votosEnContra++;
+            }
+            rec = rec->sig;
+        } while (rec != congreso->senadores);  // Iteración completa de lista circular de senadores
     }
 
     // Mostrar resultados de la votación
@@ -408,21 +396,20 @@ void camaraDeOrigen(struct propuesta *propuesta, struct congreso *congreso) {
     }
 }
 struct propuesta *crearPropuesta(struct persona *autor) {
-    char tipo[50];
-    char tema[50];
-    struct propuesta *nuevaPropuesta = NULL;
-    nuevaPropuesta = (struct propuesta *)malloc(sizeof(struct propuesta));
+    struct propuesta *nuevaPropuesta = (struct propuesta *)malloc(sizeof(struct propuesta));
 
     printf("Ingresa el ID de la propuesta: ");
     scanf("%d", &nuevaPropuesta->id);
     limpiarBuffer();
 
+    char tipo[50];
     printf("Ingresa el tipo de propuesta (financiero, tributario, educacion, etc.): ");
     fgets(tipo, sizeof(tipo), stdin);
     tipo[strcspn(tipo, "\n")] = '\0'; // Eliminar el salto de línea
     nuevaPropuesta->tipo = (char *)malloc(strlen(tipo) + 1);
     strcpy(nuevaPropuesta->tipo, tipo);
 
+    char tema[50];
     printf("Ingresa el tema de la propuesta (educacion, salud, etc.): ");
     fgets(tema, sizeof(tema), stdin);
     tema[strcspn(tema, "\n")] = '\0'; // Eliminar el salto de línea
@@ -451,12 +438,12 @@ void mostrarPropuesta(struct propuesta *propuesta){
 }
 
 struct nodoDiputado *eliminarDiputado(struct nodoDiputado *diputados, char *rut) {
-    struct nodoDiputado *rec = diputados;
-    
     if (diputados == NULL) {
         printf("La lista de diputados está vacía.\n");
         return NULL;
     }
+
+    struct nodoDiputado *rec = diputados;
 
     // Buscar el diputado por RUT
     do {
@@ -486,12 +473,12 @@ struct nodoDiputado *eliminarDiputado(struct nodoDiputado *diputados, char *rut)
 }
 
 struct nodoSenador *eliminarSenador(struct nodoSenador *senadores, char *rut) {
-    
-    struct nodoSenador *rec = senadores;
     if (senadores == NULL) {
         printf("La lista de senadores está vacía.\n");
         return NULL;
     }
+
+    struct nodoSenador *rec = senadores;
 
     // Buscar el senador por RUT
     do {
@@ -522,13 +509,12 @@ struct nodoSenador *eliminarSenador(struct nodoSenador *senadores, char *rut) {
 
 /* Función para manejar la Cámara Revisora */
 void camaraRevisora(struct propuesta *propuesta, struct congreso *congreso) {
-    int votosAFavor = 0, votosEnContra = 0;
-    int modificacion = 0;  // Si la Cámara Revisora propone modificaciones
-    
     printf("La propuesta ha llegado a la Cámara Revisora.\n");
 
     printf("Debatiendo en la Cámara Revisora...\n");
 
+    int votosAFavor = 0, votosEnContra = 0;
+    int modificacion = 0;  // Si la Cámara Revisora propone modificaciones
 
     // Lógica de votación en la Cámara Revisora
     if (strcmp(propuesta->tipo, "financiero") == 0 || strcmp(propuesta->tipo, "tributario") == 0) {
@@ -580,19 +566,12 @@ void camaraRevisora(struct propuesta *propuesta, struct congreso *congreso) {
 
 /* Función Promulgación y Veto Presidencial */
 void promulgacionOVetoPresidencial(struct presidente *presidente, struct propuesta *propuesta, struct congreso *congreso) {
-    
-    int decisionPresidencial;
-    int decisionCongreso;
-    int votosFavor = 0, votosContra = 0, votosTotales = 0;
-
-    struct nodoDiputado *recDiputado = congreso->diputados;
-    struct nodoSenador *recSenador = congreso->senadores;
-    
     if (presidente == NULL) {
         printf("No hay un presidente registrado.\n");
         return;
     }
 
+    int decisionPresidencial;
     printf("El presidente %s está evaluando la propuesta \"%s\" (ID: %d).\n", presidente->persona->nombre, propuesta->tema, propuesta->id);
     printf("¿Cuál es la decisión del presidente?\n");
     printf("1. Promulgar la ley\n");
@@ -612,6 +591,7 @@ void promulgacionOVetoPresidencial(struct presidente *presidente, struct propues
     else if (decisionPresidencial == 3) {
         printf("El presidente %s ha vetado parcialmente la propuesta \"%s\" y ha sugerido modificaciones.\n", presidente->persona->nombre, propuesta->tema);
         
+        int decisionCongreso;
         printf("El Congreso debe decidir si acepta las modificaciones.\n");
         printf("1. Aceptar las modificaciones del presidente\n");
         printf("2. Rechazar el veto con una mayoría de dos tercios\n");
@@ -622,6 +602,10 @@ void promulgacionOVetoPresidencial(struct presidente *presidente, struct propues
             printf("El Congreso ha aceptado las modificaciones. La ley ha sido promulgada con los cambios sugeridos por el presidente.\n");
         } 
         else if (decisionCongreso == 2) {
+            int votosFavor = 0, votosContra = 0, votosTotales = 0;
+
+            struct nodoDiputado *recDiputado = congreso->diputados;
+            struct nodoSenador *recSenador = congreso->senadores;
 
             if (recDiputado != NULL) {
                 do {
@@ -665,27 +649,16 @@ void promulgacionOVetoPresidencial(struct presidente *presidente, struct propues
 }
 
 void comisionMixta(struct propuesta *propuesta, struct congreso *congreso) {
-    
-    struct nodoDiputado *diputadoRec = NULL;
-    struct nodoSenador *senadorRec = NULL;
-    
-    int votosAFavorDiputados = 0, votosEnContraDiputados = 0;
-    int votosAFavorSenadores = 0, votosEnContraSenadores = 0;
-    int consenso = 0;
-    int votosAFavorTotal, votosEnContraTotal;
-    
-    diputadoRec = congreso->diputados;
-    senadorRec = congreso->senadores;
-    
-    votosAFavorTotal = votosAFavorDiputados + votosAFavorSenadores;
-    votosEnContraTotal = votosEnContraDiputados + votosEnContraSenadores;
-        
     printf("\n===== Comisión Mixta =====\n");
     printf("La propuesta ha sido enviada a la Comisión Mixta para resolver las discrepancias entre las cámaras.\n");
 
+    int votosAFavorDiputados = 0, votosEnContraDiputados = 0;
+    int votosAFavorSenadores = 0, votosEnContraSenadores = 0;
+    int consenso = 0;
+
     // Votación de los diputados en la Comisión Mixta
     printf("\nVotación de los Diputados en la Comisión Mixta:\n");
-    
+    struct nodoDiputado *diputadoRec = congreso->diputados;
     if (diputadoRec != NULL) {
         do {
             if (diputadoRec->headDiputados->voto == 1) {
@@ -702,6 +675,7 @@ void comisionMixta(struct propuesta *propuesta, struct congreso *congreso) {
 
     // Votación de los senadores en la Comisión Mixta
     printf("\nVotación de los Senadores en la Comisión Mixta:\n");
+    struct nodoSenador *senadorRec = congreso->senadores;
     if (senadorRec != NULL) {
         do {
             if (senadorRec->headSenadores->voto == 1) {
@@ -727,6 +701,9 @@ void comisionMixta(struct propuesta *propuesta, struct congreso *congreso) {
     // Si hay consenso, se procede a enviar el informe a ambas cámaras
     if (consenso) {
         printf("\nEl proyecto se envía a ambas cámaras para su votación final...\n");
+        
+        int votosAFavorTotal = votosAFavorDiputados + votosAFavorSenadores;
+        int votosEnContraTotal = votosEnContraDiputados + votosEnContraSenadores;
 
         // Mostrar el resultado final de la votación combinada
         printf("Votos totales a favor: %d\n", votosAFavorTotal);
@@ -769,17 +746,17 @@ int main() {
     struct nodoCiudadano *ciudadanos = NULL;
     struct presidente *presidente = NULL;
     struct propuesta *propuesta = NULL;
-    struct congreso *congreso = NULL;
+
+    // Inicializar correctamente el congreso
+    struct congreso congreso;
+    congreso.diputados = NULL;  // Inicializando en NULL para evitar acceso a memoria no válida
+    congreso.senadores = NULL;
+
     int opcion;
     char rut[20], nombre[50], especialidad[50], cargo[20];
     int edad, voto, anioMandato;
     int salir = 0;
-    struct persona *ciudadano = NULL;
-    struct persona *personaPresidente = NULL;
 
-    congreso->senadores = senadores;
-    congreso->diputados = diputados;
-    
     do {
         mostrarMenu();
         printf("Elige una opción: ");
@@ -812,7 +789,7 @@ int main() {
             scanf("%d", &voto);
             limpiarBuffer();
 
-            ciudadano = crearPersona(rut, nombre, edad, especialidad, voto, cargo);
+            struct persona *ciudadano = crearPersona(rut, nombre, edad, especialidad, voto, cargo);
             ciudadanos = agregarCiudadano(ciudadanos, ciudadano);
             printf("Ciudadano agregado exitosamente.\n");
 
@@ -825,22 +802,22 @@ int main() {
             printf("Ingresa el RUT del ciudadano a agregar como diputado: ");
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
-            diputados = agregarDiputado(diputados, ciudadanos, rut);
+            congreso.diputados = agregarDiputado(congreso.diputados, ciudadanos, rut); // Asegurarse de modificar el congreso
 
         } else if (opcion == 4) {
             // Mostrar Diputados
-            mostrarDiputados(diputados);
+            mostrarDiputados(congreso.diputados);  // Mostrar usando el congreso
 
         } else if (opcion == 5) {
             // Agregar Senador
             printf("Ingresa el RUT del ciudadano a agregar como senador: ");
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
-            senadores = agregarSenador(senadores, ciudadanos, rut);
+            congreso.senadores = agregarSenador(congreso.senadores, ciudadanos, rut);
 
         } else if (opcion == 6) {
             // Mostrar Senadores
-            mostrarSenadores(senadores);
+            mostrarSenadores(congreso.senadores);
 
         } else if (opcion == 7) {
             // Agregar Presidente
@@ -848,7 +825,7 @@ int main() {
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
 
-            personaPresidente = buscarCiudadanoPorRUT(ciudadanos, rut);
+            struct persona *personaPresidente = buscarCiudadanoPorRUT(ciudadanos, rut);
             if (personaPresidente == NULL) {
                 printf("El ciudadano con RUT %s no existe.\n", rut);
             } else {
@@ -881,7 +858,7 @@ int main() {
             if (propuesta == NULL) {
                 printf("Primero debes crear una propuesta para iniciar la Cámara de Origen.\n");
             } else {
-                camaraDeOrigen(propuesta, &congreso);
+                camaraDeOrigen(propuesta, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
             }
 
         } else if (opcion == 12) {
@@ -889,7 +866,7 @@ int main() {
             if (propuesta == NULL) {
                 printf("Primero debes crear una propuesta para iniciar la Cámara Revisora.\n");
             } else {
-                camaraRevisora(propuesta, &congreso);
+                camaraRevisora(propuesta, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
             }
 
         } else if (opcion == 13) {
@@ -897,7 +874,7 @@ int main() {
             if (presidente == NULL || propuesta == NULL) {
                 printf("Se necesita tanto un presidente como una propuesta para proceder con la promulgación o veto.\n");
             } else {
-                promulgacionOVetoPresidencial(presidente, propuesta, &congreso);
+                promulgacionOVetoPresidencial(presidente, propuesta, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
             }
 
         } else if (opcion == 14) {
@@ -905,21 +882,21 @@ int main() {
             printf("Ingresa el RUT del diputado a eliminar: ");
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
-            diputados = eliminarDiputado(diputados, rut);
+            congreso.diputados = eliminarDiputado(congreso.diputados, rut);  // Modificar correctamente la lista de diputados
 
         } else if (opcion == 15) {
             // Eliminar Senador
             printf("Ingresa el RUT del senador a eliminar: ");
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
-            senadores = eliminarSenador(senadores, rut);
+            congreso.senadores = eliminarSenador(congreso.senadores, rut);  // Modificar correctamente la lista de senadores
 
         } else if (opcion == 16) {
             // Comisión Mixta
             if (propuesta == NULL) {
                 printf("Primero debes crear una propuesta para enviar a la Comisión Mixta.\n");
             } else {
-                comisionMixta(propuesta, &congreso);
+                comisionMixta(propuesta, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
             }
 
         } else if (opcion == 17) {
