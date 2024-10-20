@@ -152,6 +152,17 @@ void mostrarCiudadanos(struct nodoCiudadano *ciudadanos) {
     }
 }
 
+struct persona *buscarCiudadanoPorRUT(struct nodoCiudadano *ciudadanos, char *rut) {
+    struct nodoCiudadano *rec = ciudadanos;
+    while (rec != NULL) {
+        if (strcmp(rec->datos->rut, rut) == 0) {
+            return rec->datos;
+        }
+        rec = rec->sig;
+    }
+    return NULL;
+}
+
 struct persona *crearPersona(char *rut, char *nombre, int edad, char *especialidad, int voto, char*cargo){
 
     struct persona *nuevaPersona;
@@ -310,16 +321,6 @@ void mostrarPresidente(struct presidente *presidente) {
     printf("Año de Mandato: %d\n", presidente->anioMandato);
     printf("Voto: %d\n", presidente->voto);
     printf("================================\n");
-}
-struct persona *buscarCiudadanoPorRUT(struct nodoCiudadano *ciudadanos, char *rut) {
-    struct nodoCiudadano *rec = ciudadanos;
-    while (rec != NULL) {
-        if (strcmp(rec->datos->rut, rut) == 0) {
-            return rec->datos;
-        }
-        rec = rec->sig;
-    }
-    return NULL;
 }
 
 void camaraDeOrigen(struct propuesta *propuesta, struct congreso *congreso) {
