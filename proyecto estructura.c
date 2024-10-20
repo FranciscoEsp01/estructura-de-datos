@@ -36,6 +36,12 @@ Joaquin Muñoz
     se agrego la funcion promulgacion o veto presidencial
     se agregó la funcion al menú
 */
+/* cambio 1.6
+Rigoberto Canales
+    se agrega la funcion comision mixta
+    se agrega la funcion a menu
+    se hacen cambios en main para el uso de comision mixta
+*/
 
 struct ProcesoLegislativo{
   struct presidente *presidente;
@@ -552,6 +558,8 @@ void camaraRevisora(struct propuesta *propuesta, struct congreso *congreso) {
     }
 }
 
+
+
 /* Función Promulgación y Veto Presidencial */
 void promulgacionOVetoPresidencial(struct presidente *presidente, struct propuesta *propuesta, struct congreso *congreso) {
     if (presidente == NULL) {
@@ -636,7 +644,74 @@ void promulgacionOVetoPresidencial(struct presidente *presidente, struct propues
     }
 }
 
-/* Otras funciones del código (omitidas por brevedad) */
+void comisionMixta(struct propuesta *propuesta, struct congreso *congreso) {
+    printf("\n===== Comisión Mixta =====\n");
+    printf("La propuesta ha sido enviada a la Comisión Mixta para resolver las discrepancias entre las cámaras.\n");
+
+    int votosAFavorDiputados = 0, votosEnContraDiputados = 0;
+    int votosAFavorSenadores = 0, votosEnContraSenadores = 0;
+    int consenso = 0;
+
+    // Votación de los diputados en la Comisión Mixta
+    printf("\nVotación de los Diputados en la Comisión Mixta:\n");
+    struct nodoDiputado *diputadoRec = congreso->diputados;
+    if (diputadoRec != NULL) {
+        do {
+            if (diputadoRec->headDiputados->voto == 1) {
+                votosAFavorDiputados++;
+            } else {
+                votosEnContraDiputados++;
+            }
+            diputadoRec = diputadoRec->sig;
+        } while (diputadoRec != congreso->diputados);
+    }
+
+    printf("Diputados a favor: %d\n", votosAFavorDiputados);
+    printf("Diputados en contra: %d\n", votosEnContraDiputados);
+
+    // Votación de los senadores en la Comisión Mixta
+    printf("\nVotación de los Senadores en la Comisión Mixta:\n");
+    struct nodoSenador *senadorRec = congreso->senadores;
+    if (senadorRec != NULL) {
+        do {
+            if (senadorRec->headSenadores->voto == 1) {
+                votosAFavorSenadores++;
+            } else {
+                votosEnContraSenadores++;
+            }
+            senadorRec = senadorRec->sig;
+        } while (senadorRec != congreso->senadores);
+    }
+
+    printf("Senadores a favor: %d\n", votosAFavorSenadores);
+    printf("Senadores en contra: %d\n", votosEnContraSenadores);
+
+    // Determinar si se alcanzó un consenso en la Comisión Mixta
+    if ((votosAFavorDiputados > votosEnContraDiputados) && (votosAFavorSenadores > votosEnContraSenadores)) {
+        consenso = 1;
+        printf("\nLa Comisión Mixta ha alcanzado un consenso. El informe será enviado a ambas cámaras para su votación.\n");
+    } else {
+        printf("\nNo se alcanzó un consenso en la Comisión Mixta. El proyecto ha sido rechazado.\n");
+    }
+
+    // Si hay consenso, se procede a enviar el informe a ambas cámaras
+    if (consenso) {
+        printf("\nEl proyecto se envía a ambas cámaras para su votación final...\n");
+        
+        int votosAFavorTotal = votosAFavorDiputados + votosAFavorSenadores;
+        int votosEnContraTotal = votosEnContraDiputados + votosEnContraSenadores;
+
+        // Mostrar el resultado final de la votación combinada
+        printf("Votos totales a favor: %d\n", votosAFavorTotal);
+        printf("Votos totales en contra: %d\n", votosEnContraTotal);
+
+        if (votosAFavorTotal > votosEnContraTotal) {
+            printf("El proyecto ha sido aprobado por ambas cámaras tras el consenso en la Comisión Mixta.\n");
+        } else {
+            printf("El proyecto ha sido rechazado por ambas cámaras tras la votación final.\n");
+        }
+    }
+}
 
 /* Función mostrarMenu con nueva opción para veto presidencial */
 void mostrarMenu() {
@@ -653,10 +728,11 @@ void mostrarMenu() {
     printf("10. Mostrar Propuesta\n");
     printf("11. Iniciar Cámara de Origen\n");
     printf("12. Iniciar Cámara Revisora\n");
-    printf("13. Promulgación o Veto Presidencial\n");  // Nueva opción agregada aquí
+    printf("13. Promulgación o Veto Presidencial\n");
     printf("14. Eliminar Diputado\n");
     printf("15. Eliminar Senador\n");
-    printf("16. Salir\n");
+    printf("16. Comisión Mixta\n");  // Nueva opción agregada aquí
+    printf("17. Salir\n");
     printf("================\n");
 }
 
@@ -808,6 +884,14 @@ int main() {
             senadores = eliminarSenador(senadores, rut);
 
         } else if (opcion == 16) {
+            // Comisión Mixta
+            if (propuesta == NULL) {
+                printf("Primero debes crear una propuesta para enviar a la Comisión Mixta.\n");
+            } else {
+                comisionMixta(propuesta, &congreso);
+            }
+
+        } else if (opcion == 17) {
             printf("Saliendo del programa...\n");
             salir = 1;
 
