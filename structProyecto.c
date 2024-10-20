@@ -10,6 +10,8 @@
     se agrego la funcion crearNodoDiputado para crear un nodo de diputado con los datos necesarios
     se agrego la funcion agregarDiputado para agregar un diputado a la lista de diputados
     se agrego la funcion mostrarDiputados para mostrar los diputados de la lista de diputados
+    
+    cambios 1.2: movi unas partes del codigo para que compilara en el turbo c
 
     mas tarde o mañana voy a hacer para los ciudadanos y senadores, ademas de la funcion de quitar
     
@@ -163,6 +165,9 @@ void mostrarDiputados(struct nodoDiputado *diputados){
 
 int main () {
     struct ProcesoLegislativo *proceso;
+    struct presidente presidente;
+    struct persona *diputado1, *diputado2, *diputado3, *diputado4, *diputado5;
+    
     proceso = (struct ProcesoLegislativo *) malloc(sizeof(struct ProcesoLegislativo));
     
     proceso->presidente = NULL;
@@ -175,9 +180,11 @@ int main () {
 
     /* datos de prueba */
 
-    struct presidente presidente = {"Sebastian Pinera", 70, 2018, 1};
-    proceso->presidente = &presidente;
-    
+    proceso->presidente = (struct presidente *) malloc(sizeof(struct presidente));
+    proceso->presidente->nombre = strdup("Sebastian Pinera");
+    proceso->presidente->edad = 70;
+    proceso->presidente->anioMandato = 2018;
+    proceso->presidente->voto = 1;
 
     printf("Nombre presidente: %s\n", proceso->presidente->nombre);
     printf("Edad presidente: %d\n", proceso->presidente->edad);
@@ -186,17 +193,19 @@ int main () {
 
     /* diputados de prueba, formato {rut, nombre, edad, especialidad, voto}, esto para agregar/quitarlos del proceso legislativo */
 
-    struct persona *diputado1 = crearPersona("21777777-6", "Rodrigo Teniente", 30, "Educacion", 0);
-    struct persona *diputado2 = crearPersona("15325949-K", "Juan Perez", 50, "Economia", 0);
-    struct persona *diputado3 = crearPersona("93429349-6", "Jorge Fernandez", 37, "Trabajo", 0);
-    struct persona *diputado4 = crearPersona("24055505-4", "Rene Puentes", 43, "Salud", 0);
-    struct persona *diputado5 = crearPersona("21777777-7", "Jorge El Flaco Johnson", 21, "Educacion", 0);
+    diputado1 = crearPersona("21777777-6", "Rodrigo Teniente", 30, "Educacion", 0);
+    diputado2 = crearPersona("15325949-K", "Juan Perez", 50, "Economia", 0);
+    diputado3 = crearPersona("93429349-6", "Jorge Fernandez", 37, "Trabajo", 0);
+    diputado4 = crearPersona("24055505-4", "Rene Puentes", 43, "Salud", 0);
+    diputado5 = crearPersona("21777777-7", "Jorge El Flaco Johnson", 21, "Educacion", 0);
 
     proceso->congreso = (struct congreso *) malloc(sizeof(struct congreso)); // inicializar congreso
     proceso->congreso->camaraDeOrigen = (struct camaraDeOrigen *) malloc(sizeof(struct camaraDeOrigen)); // inicializar camara de origen
     proceso->congreso->camaraDeOrigen->diputados = NULL; // inicializar lista de diputados
 
     proceso->congreso->camaraDeOrigen->diputados = agregarDiputado(proceso->congreso->camaraDeOrigen->diputados, diputado1);
+    proceso->congreso->camaraDeOrigen->diputados = agregarDiputado(proceso->congreso->camaraDeOrigen->diputados, diputado2);
+    proceso->congreso->camaraDeOrigen->diputados = agregarDiputado(proceso->congreso->camaraDeOrigen->diputados, diputado3);
     proceso->congreso->camaraDeOrigen->diputados = agregarDiputado(proceso->congreso->camaraDeOrigen->diputados, diputado4);
     proceso->congreso->camaraDeOrigen->diputados = agregarDiputado(proceso->congreso->camaraDeOrigen->diputados, diputado5);
 
