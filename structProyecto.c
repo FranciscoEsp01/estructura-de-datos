@@ -163,6 +163,13 @@ void mostrarDiputados(struct nodoDiputado *diputados){
 }
 // Definición de structs y funciones omitida para abreviar (ya la tienes en el código)
 
+void limpiarBuffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF) {
+        // Vaciar el buffer
+    }
+}
+
 void mostrarMenu() {
     printf("\n===== Menu =====\n");
     printf("1. Crear Persona\n");
@@ -177,56 +184,67 @@ int main() {
     int opcion;
     char rut[20], nombre[50], especialidad[50], cargo[20];
     int edad, voto;
+    int salir = 0;  // Variable para controlar el ciclo del menú
 
     do {
         mostrarMenu();
         printf("Elige una opción: ");
         scanf("%d", &opcion);
+        limpiarBuffer();  // Limpiar el buffer para evitar problemas con el salto de línea
 
-        switch(opcion) {
-            case 1:
-                printf("Ingresa el RUT: ");
-                scanf("%s", rut);
-                printf("Ingresa el nombre: ");
-                scanf("%s", nombre);
-                printf("Ingresa la edad: ");
-                scanf("%d", &edad);
-                printf("Ingresa la especialidad: ");
-                scanf("%s", especialidad);
-                printf("Ingresa el cargo (Diputado/Senador): ");
-                scanf("%s", cargo);
-                printf("Ingresa el voto (1=afirmativo, 0=negativo): ");
-                scanf("%d", &voto);
+        if (opcion == 1) {
+            printf("Ingresa el RUT: ");
+            fgets(rut, sizeof(rut), stdin);
+            rut[strcspn(rut, "\n")] = '\0';  // Eliminar el salto de línea
 
-                struct persona *nuevaPersona = crearPersona(rut, nombre, edad, especialidad, voto, cargo);
-                printf("Persona creada exitosamente.\n");
-                break;
+            printf("Ingresa el nombre: ");
+            fgets(nombre, sizeof(nombre), stdin);
+            nombre[strcspn(nombre, "\n")] = '\0';  // Eliminar el salto de línea
 
-            case 2: 
-                printf("Ingresa el RUT de la persona que deseas agregar como diputado: ");
-                scanf("%s", rut); // Para simplificar se usa el mismo flujo de crearPersona. Debes tener una persona creada
-                // Aquí se debería verificar que la persona fue creada (implementación opcional)
-                struct persona *diputado = crearPersona(rut, nombre, edad, especialidad, voto, cargo); // En un escenario real, ya tendrías esta persona.
-                diputados = agregarDiputado(diputados, diputado);
-                printf("Diputado agregado exitosamente.\n");
-                break;
+            printf("Ingresa la edad: ");
+            scanf("%d", &edad);
+            limpiarBuffer();  // Limpiar el buffer para evitar problemas con el salto de línea
 
-            case 3:
-                if(diputados == NULL) {
-                    printf("No hay diputados en la lista.\n");
-                } else {
-                    mostrarDiputados(diputados);
-                }
-                break;
+            printf("Ingresa la especialidad: ");
+            fgets(especialidad, sizeof(especialidad), stdin);
+            especialidad[strcspn(especialidad, "\n")] = '\0';  // Eliminar el salto de línea
 
-            case 4:
-                printf("Saliendo del programa...\n");
-                break;
+            printf("Ingresa el cargo (Diputado/Senador): ");
+            fgets(cargo, sizeof(cargo), stdin);
+            cargo[strcspn(cargo, "\n")] = '\0';  // Eliminar el salto de línea
 
-            default:
-                printf("Opción no válida. Por favor, intenta de nuevo.\n");
+            printf("Ingresa el voto (1=afirmativo, 0=negativo): ");
+            scanf("%d", &voto);
+            limpiarBuffer();  // Limpiar el buffer para evitar problemas con el salto de línea
+
+            struct persona *nuevaPersona = crearPersona(rut, nombre, edad, especialidad, voto, cargo);
+            printf("Persona creada exitosamente.\n");
+        } 
+        else if (opcion == 2) {
+            printf("Ingresa el RUT de la persona que deseas agregar como diputado: ");
+            fgets(rut, sizeof(rut), stdin);
+            rut[strcspn(rut, "\n")] = '\0';  // Eliminar el salto de línea
+
+            // Aquí se debería verificar que la persona fue creada (implementación opcional)
+            struct persona *diputado = crearPersona(rut, nombre, edad, especialidad, voto, cargo);
+            diputados = agregarDiputado(diputados, diputado);
+            printf("Diputado agregado exitosamente.\n");
+        } 
+        else if (opcion == 3) {
+            if (diputados == NULL) {
+                printf("No hay diputados en la lista.\n");
+            } else {
+                mostrarDiputados(diputados);
+            }
+        } 
+        else if (opcion == 4) {
+            printf("Saliendo del programa...\n");
+            salir = 1;  // Se marca la salida del ciclo
+        } 
+        else {
+            printf("Opción no válida. Por favor, intenta de nuevo.\n");
         }
-    } while (opcion != 4);
+    } while (!salir);  // El ciclo se repite hasta que salir sea 1
 
     return 0;
 }
