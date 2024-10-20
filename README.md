@@ -1,2 +1,2 @@
-el que no trabaje balazo 🔫
+el que no trabaje balazo 🔫\n
 RECORDAR AGREGAR FUNCIONES ELEMENTALES AL MENU PARA PODER PROBARSE 😋
