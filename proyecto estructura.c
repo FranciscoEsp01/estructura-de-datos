@@ -49,6 +49,22 @@ Francisco Espinoza
     se modifico el main ya que no se inicalizaba bien el Agregar y Mostrar diputados y senadores
 */
 
+/* Cambio 1.8
+Francisco Espinoza
+    se agrego NodoPropuestas
+    se agrego insertarPropuesta (al ABB)
+    se modifico el crearPropuesta
+    se agrego buscar propuesta(POR ID)
+    se modifico el main
+    SE DEBE MODIFICAR:
+        -CAMARA DE ORIGEN
+        -CAMARA REVISORIA
+        -COMISION MIXTA
+        -PROMULGACION Y VETO PRESIDENCIAL
+    SE DEBE AGREGAR EL ABB PARA RECORRER LA PROPUESTA
+
+    ---SIN REVISAR---
+*/
 struct ProcesoLegislativo{
   struct presidente *presidente;
   struct congreso *congreso;
@@ -395,7 +411,27 @@ void camaraDeOrigen(struct propuesta *propuesta, struct congreso *congreso) {
         printf("La idea de legislar ha sido rechazada. El proyecto no avanza.\n");
     }
 }
-struct propuesta *crearPropuesta(struct persona *autor) {
+struct nodoPropuestas *insertarPropuesta(struct nodoPropuestas *raiz, struct propuesta *nuevaPropuesta) {
+    if (raiz == NULL) {
+        struct nodoPropuestas *nuevoNodo = (struct nodoPropuestas *)malloc(sizeof(struct nodoPropuestas));
+        nuevoNodo->datos = nuevaPropuesta;
+        nuevoNodo->izq = nuevoNodo->der = NULL;
+        return nuevoNodo;
+    }
+    
+    if (nuevaPropuesta->id < raiz->datos->id) {
+        raiz->izq = insertarPropuesta(raiz->izq, nuevaPropuesta);
+    } else if (nuevaPropuesta->id > raiz->datos->id) {
+        raiz->der = insertarPropuesta(raiz->der, nuevaPropuesta);
+    } else {
+        printf("Propuesta con ID %d ya existe.\n", nuevaPropuesta->id);
+    }
+    
+    return raiz;
+}
+
+
+struct nodoPropuestas *crearPropuesta(struct nodoPropuestas *raiz, struct persona *autor) {
     struct propuesta *nuevaPropuesta = (struct propuesta *)malloc(sizeof(struct propuesta));
 
     printf("Ingresa el ID de la propuesta: ");
@@ -420,21 +456,57 @@ struct propuesta *crearPropuesta(struct persona *autor) {
 
     printf("Propuesta creada exitosamente.\n");
 
-    return nuevaPropuesta;
+    return insertarPropuesta(raiz, nuevaPropuesta); // Insertar en el ABB
+}
+struct propuesta *buscarPropuesta(struct nodoPropuestas *raiz, int id) {
+    if (raiz == NULL) {
+        return NULL; // No encontrada
+    }
+
+    if (id == raiz->datos->id) {
+        return raiz->datos;
+    } else if (id < raiz->datos->id) {
+        return buscarPropuesta(raiz->izq, id);
+    } else {
+        return buscarPropuesta(raiz->der, id);
+    }
 }
 
-void mostrarPropuesta(struct propuesta *propuesta){
-    if(propuesta == NULL){
-        printf("No hay propuesta registrada.\n");
+void mostrarPropuesta(struct propuesta *propuesta) {
+    if (propuesta == NULL) {
+        printf("No se encontró la propuesta con el ID especificado.\n");
+    } else {
+        printf("\n===== Datos de la Propuesta =====\n");
+        printf("ID de la propuesta: %d\n", propuesta->id);
+        printf("Tipo: %s\n", propuesta->tipo);
+        printf("Tema: %s\n", propuesta->tema);
+        printf("Autor: %s\n", propuesta->personaAcargo->nombre);
+        printf("=================================\n");
+    }
+}
+void mostrarPropuestas(struct nodoPropuestas *raiz) {
+    if (raiz == NULL) {
+        printf("No hay propuestas registradas.\n");
         return;
     }
+
+    // Recorrido inorden (izquierda, raíz, derecha)
+    if (raiz->izq != NULL) {
+        mostrarPropuestas(raiz->izq); // Lado izquierdo del árbol
+    }
+
+    // Mostrar la propuesta actual (nodo raíz)
     printf("\n===== Datos de la Propuesta =====\n");
-    printf("ID de la propuesta: %d\n", propuesta->id);
-    printf("Tipo: %s\n", propuesta->tipo);
-    printf("Tema: %s\n", propuesta->tema);
-    printf("Autor: %s\n", propuesta->personaAcargo->nombre);
+    printf("ID de la propuesta: %d\n", raiz->datos->id);
+    printf("Tipo: %s\n", raiz->datos->tipo);
+    printf("Tema: %s\n", raiz->datos->tema);
+    printf("Autor: %s\n", raiz->datos->personaAcargo->nombre);
     printf("=================================\n");
 
+    // Recorrido por el lado derecho del árbol
+    if (raiz->der != NULL) {
+        mostrarPropuestas(raiz->der);
+    }
 }
 
 struct nodoDiputado *eliminarDiputado(struct nodoDiputado *diputados, char *rut) {
@@ -729,25 +801,27 @@ void mostrarMenu() {
     printf("7. Agregar Presidente\n");
     printf("8. Mostrar Presidente\n");
     printf("9. Crear Propuesta\n");
-    printf("10. Mostrar Propuesta\n");
-    printf("11. Iniciar Cámara de Origen\n");
-    printf("12. Iniciar Cámara Revisora\n");
-    printf("13. Promulgación o Veto Presidencial\n");
-    printf("14. Eliminar Diputado\n");
-    printf("15. Eliminar Senador\n");
-    printf("16. Comisión Mixta\n");  // Nueva opción agregada aquí
-    printf("17. Salir\n");
+    printf("10. Mostrar Propuesta por ID\n");
+    printf("11. Mostrar Todas las Propuestas\n"); // Nueva opción
+    printf("12. Iniciar Cámara de Origen\n");
+    printf("13. Iniciar Cámara Revisora\n");
+    printf("14. Promulgación o Veto Presidencial\n");
+    printf("15. Eliminar Diputado\n");
+    printf("16. Eliminar Senador\n");
+    printf("17. Comisión Mixta\n");
+    printf("18. Salir\n");
     printf("================\n");
 }
+
 
 int main() {
     struct nodoDiputado *diputados = NULL;
     struct nodoSenador *senadores = NULL;
     struct nodoCiudadano *ciudadanos = NULL;
     struct presidente *presidente = NULL;
-    struct propuesta *propuesta = NULL;
+    struct nodoPropuestas *propuestas = NULL;  // Árbol de propuestas
 
-    // Inicializar correctamente el congreso
+    // Inicializar correctamente el congreso como variable no puntero
     struct congreso congreso;
     congreso.diputados = NULL;  // Inicializando en NULL para evitar acceso a memoria no válida
     congreso.senadores = NULL;
@@ -802,11 +876,11 @@ int main() {
             printf("Ingresa el RUT del ciudadano a agregar como diputado: ");
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
-            congreso.diputados = agregarDiputado(congreso.diputados, ciudadanos, rut); // Asegurarse de modificar el congreso
+            congreso.diputados = agregarDiputado(congreso.diputados, ciudadanos, rut); // Modificar correctamente la lista de diputados
 
         } else if (opcion == 4) {
             // Mostrar Diputados
-            mostrarDiputados(congreso.diputados);  // Mostrar usando el congreso
+            mostrarDiputados(congreso.diputados);
 
         } else if (opcion == 5) {
             // Agregar Senador
@@ -842,64 +916,74 @@ int main() {
             mostrarPresidente(presidente);
 
         } else if (opcion == 9) {
-            // Crear Propuesta
+            // Crear Propuesta y agregarla al ABB
             if (presidente == NULL) {
                 printf("Primero debes agregar un presidente para asignar una propuesta.\n");
             } else {
-                propuesta = crearPropuesta(presidente->persona);
+                propuestas = crearPropuesta(propuestas, presidente->persona);
             }
 
         } else if (opcion == 10) {
-            // Mostrar Propuesta
-            mostrarPropuesta(propuesta);
+            // Mostrar Propuesta por ID
+            int idPropuesta;
+            printf("Ingresa el ID de la propuesta a buscar: ");
+            scanf("%d", &idPropuesta);
+            limpiarBuffer();
+
+            struct propuesta *propuestaEncontrada = buscarPropuesta(propuestas, idPropuesta);
+            mostrarPropuesta(propuestaEncontrada); // Esta función ya maneja el caso si la propuesta es NULL
 
         } else if (opcion == 11) {
-            // Iniciar Cámara de Origen
-            if (propuesta == NULL) {
-                printf("Primero debes crear una propuesta para iniciar la Cámara de Origen.\n");
-            } else {
-                camaraDeOrigen(propuesta, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
-            }
+            // Mostrar todas las propuestas
+            mostrarPropuestas(propuestas);
 
         } else if (opcion == 12) {
-            // Iniciar Cámara Revisora
-            if (propuesta == NULL) {
-                printf("Primero debes crear una propuesta para iniciar la Cámara Revisora.\n");
+            // Iniciar Cámara de Origen
+            if (propuestas == NULL) {
+                printf("Primero debes crear una propuesta para iniciar la Cámara de Origen.\n");
             } else {
-                camaraRevisora(propuesta, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
+                camaraDeOrigen(propuestas->datos, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
             }
 
         } else if (opcion == 13) {
-            // Promulgación o Veto Presidencial
-            if (presidente == NULL || propuesta == NULL) {
-                printf("Se necesita tanto un presidente como una propuesta para proceder con la promulgación o veto.\n");
+            // Iniciar Cámara Revisora
+            if (propuestas == NULL) {
+                printf("Primero debes crear una propuesta para iniciar la Cámara Revisora.\n");
             } else {
-                promulgacionOVetoPresidencial(presidente, propuesta, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
+                camaraRevisora(propuestas->datos, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
             }
 
         } else if (opcion == 14) {
+            // Promulgación o Veto Presidencial
+            if (presidente == NULL || propuestas == NULL) {
+                printf("Se necesita tanto un presidente como una propuesta para proceder con la promulgación o veto.\n");
+            } else {
+                promulgacionOVetoPresidencial(presidente, propuestas->datos, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
+            }
+
+        } else if (opcion == 15) {
             // Eliminar Diputado
             printf("Ingresa el RUT del diputado a eliminar: ");
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
             congreso.diputados = eliminarDiputado(congreso.diputados, rut);  // Modificar correctamente la lista de diputados
 
-        } else if (opcion == 15) {
+        } else if (opcion == 16) {
             // Eliminar Senador
             printf("Ingresa el RUT del senador a eliminar: ");
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
             congreso.senadores = eliminarSenador(congreso.senadores, rut);  // Modificar correctamente la lista de senadores
 
-        } else if (opcion == 16) {
+        } else if (opcion == 17) {
             // Comisión Mixta
-            if (propuesta == NULL) {
+            if (propuestas == NULL) {
                 printf("Primero debes crear una propuesta para enviar a la Comisión Mixta.\n");
             } else {
-                comisionMixta(propuesta, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
+                comisionMixta(propuestas->datos, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
             }
 
-        } else if (opcion == 17) {
+        } else if (opcion == 18) {
             printf("Saliendo del programa...\n");
             salir = 1;
 
