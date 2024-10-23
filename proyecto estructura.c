@@ -87,7 +87,8 @@ Simon Ledezma
 
     // cosas que he notado y que hay que arreglar:
         - hay que colocar verificaciones en las funciones de agregar, permite agregar el mismo ciudadano varias veces
-       -  tambien hay que verificar los cargos, permite agregar el mismo ciudadano como diputado senador y presidente
+        - tambien hay que verificar los cargos, permite agregar el mismo ciudadano como diputado senador y presidente
+        - modularizar los prints
     //
 
     // cambios: 
