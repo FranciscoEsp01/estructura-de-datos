@@ -68,6 +68,15 @@ Francisco Espinoza
         -COMISION MIXTA
         -PROMULGACION Y VETO PRESIDENCIAL
     ---SIN REVISAR---
+
+        cambio 1.8.2 Francisco espinoza
+        se arreglaron las funcionciones de comision Mixta y promulgacion o veto presidencial
+            - las dos recorren el nodoProyecto y busca el proyecto en cuestion a travez del ID
+            - se puede ejecutar mas de 1 vez con diferentes proyectos
+            ---SIN REVISAR---
+    SE DEBE MODIFICAR:
+        -COMISION MIXTA
+
 */
 struct ProcesoLegislativo{
   struct presidente *presidente;
@@ -595,10 +604,20 @@ struct nodoSenador *eliminarSenador(struct nodoSenador *senadores, char *rut) {
 }
 
 /* Función para manejar la Cámara Revisora */
-void camaraRevisora(struct propuesta *propuesta, struct congreso *congreso) {
-    printf("La propuesta ha llegado a la Cámara Revisora.\n");
+/* Función para manejar la Cámara Revisora */
+void camaraRevisora(struct nodoPropuestas *raizPropuestas, struct congreso *congreso) {
+    int idPropuesta;
+    printf("Ingresa el ID de la propuesta a discutir en la Cámara Revisora: ");
+    scanf("%d", &idPropuesta);
 
-    printf("Debatiendo en la Cámara Revisora...\n");
+    // Buscar la propuesta por ID en el ABB
+    struct propuesta *propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
+    if (propuesta == NULL) {
+        printf("Propuesta con ID %d no encontrada.\n", idPropuesta);
+        return;
+    }
+
+    printf("La propuesta con ID %d ha llegado a la Cámara Revisora.\n", idPropuesta);
 
     int votosAFavor = 0, votosEnContra = 0;
     int modificacion = 0;  // Si la Cámara Revisora propone modificaciones
@@ -650,11 +669,22 @@ void camaraRevisora(struct propuesta *propuesta, struct congreso *congreso) {
 }
 
 
-
 /* Función Promulgación y Veto Presidencial */
-void promulgacionOVetoPresidencial(struct presidente *presidente, struct propuesta *propuesta, struct congreso *congreso) {
+/* Función Promulgación y Veto Presidencial */
+void promulgacionOVetoPresidencial(struct presidente *presidente, struct nodoPropuestas *raizPropuestas, struct congreso *congreso) {
     if (presidente == NULL) {
         printf("No hay un presidente registrado.\n");
+        return;
+    }
+
+    int idPropuesta;
+    printf("Ingresa el ID de la propuesta a discutir para promulgación o veto presidencial: ");
+    scanf("%d", &idPropuesta);
+
+    // Buscar la propuesta por ID en el ABB
+    struct propuesta *propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
+    if (propuesta == NULL) {
+        printf("Propuesta con ID %d no encontrada.\n", idPropuesta);
         return;
     }
 
@@ -734,6 +764,7 @@ void promulgacionOVetoPresidencial(struct presidente *presidente, struct propues
         printf("Opción no válida. El proceso se cancela.\n");
     }
 }
+
 
 void comisionMixta(struct propuesta *propuesta, struct congreso *congreso) {
     printf("\n===== Comisión Mixta =====\n");
@@ -965,7 +996,7 @@ int main() {
             if (propuestas == NULL) {
                 printf("Primero debes crear una propuesta para iniciar la Cámara Revisora.\n");
             } else {
-                camaraRevisora(propuestas->datos, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
+                camaraRevisora(propuestas, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
             }
 
         } else if (opcion == 14) {
@@ -973,7 +1004,7 @@ int main() {
             if (presidente == NULL || propuestas == NULL) {
                 printf("Se necesita tanto un presidente como una propuesta para proceder con la promulgación o veto.\n");
             } else {
-                promulgacionOVetoPresidencial(presidente, propuestas->datos, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
+                promulgacionOVetoPresidencial(presidente, propuestas, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
             }
 
         } else if (opcion == 15) {
