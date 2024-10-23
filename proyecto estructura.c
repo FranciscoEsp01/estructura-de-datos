@@ -57,12 +57,16 @@ Francisco Espinoza
     se agrego buscar propuesta(POR ID)
     se modifico el main
     SE DEBE MODIFICAR:
-        -CAMARA DE ORIGEN
+    SE DEBE AGREGAR EL ABB PARA RECORRER LA PROPUESTA
+        
+        cambio 1.8.1 Francisco Espinoza
+            se arreglo la funcion de camara de origen:
+                -recorre el nodoProyecto y lo busca por ID
+                - se puede ejecutar mas de 1 vez con diferentes proyectos
+    SE DEBE MODIFICAR:
         -CAMARA REVISORIA
         -COMISION MIXTA
         -PROMULGACION Y VETO PRESIDENCIAL
-    SE DEBE AGREGAR EL ABB PARA RECORRER LA PROPUESTA
-
     ---SIN REVISAR---
 */
 struct ProcesoLegislativo{
@@ -257,7 +261,6 @@ struct nodoDiputado *agregarDiputado(struct nodoDiputado *diputados, struct nodo
     return diputados;
 }
 
-
 void mostrarDiputados(struct nodoDiputado *diputados){
     struct nodoDiputado *rec = diputados;
     do{
@@ -269,9 +272,25 @@ void mostrarDiputados(struct nodoDiputado *diputados){
         rec = rec->sig;
     } while (rec != diputados);
 }
-// Definición de structs y funciones omitida para abreviar (ya la tienes en el código)
 
-
+struct nodoPropuestas *insertarPropuesta(struct nodoPropuestas *raiz, struct propuesta *nuevaPropuesta) {
+    if (raiz == NULL) {
+        struct nodoPropuestas *nuevoNodo = (struct nodoPropuestas *)malloc(sizeof(struct nodoPropuestas));
+        nuevoNodo->datos = nuevaPropuesta;
+        nuevoNodo->izq = nuevoNodo->der = NULL;
+        return nuevoNodo;
+    }
+    
+    if (nuevaPropuesta->id < raiz->datos->id) {
+        raiz->izq = insertarPropuesta(raiz->izq, nuevaPropuesta);
+    } else if (nuevaPropuesta->id > raiz->datos->id) {
+        raiz->der = insertarPropuesta(raiz->der, nuevaPropuesta);
+    } else {
+        printf("Propuesta con ID %d ya existe.\n", nuevaPropuesta->id);
+    }
+    
+    return raiz;
+}
 
 struct presidente *crearPresidente(struct persona *persona, int anioMandato, int voto) {
     struct presidente *nuevoPresidente;
@@ -322,6 +341,47 @@ struct nodoSenador *agregarSenador(struct nodoSenador *senadores, struct nodoCiu
     return senadores;
 }
 
+struct propuesta *buscarPropuesta(struct nodoPropuestas *raiz, int id) {
+    if (raiz == NULL) {
+        return NULL; // No encontrada
+    }
+
+    if (id == raiz->datos->id) {
+        return raiz->datos;
+    } else if (id < raiz->datos->id) {
+        return buscarPropuesta(raiz->izq, id);
+    } else {
+        return buscarPropuesta(raiz->der, id);
+    }
+}
+
+struct nodoPropuestas *crearPropuesta(struct nodoPropuestas *raiz, struct persona *autor) {
+    struct propuesta *nuevaPropuesta = (struct propuesta *)malloc(sizeof(struct propuesta));
+
+    printf("Ingresa el ID de la propuesta: ");
+    scanf("%d", &nuevaPropuesta->id);
+    limpiarBuffer();
+
+    char tipo[50];
+    printf("Ingresa el tipo de propuesta (financiero, tributario, educacion, etc.): ");
+    fgets(tipo, sizeof(tipo), stdin);
+    tipo[strcspn(tipo, "\n")] = '\0'; // Eliminar el salto de línea
+    nuevaPropuesta->tipo = (char *)malloc(strlen(tipo) + 1);
+    strcpy(nuevaPropuesta->tipo, tipo);
+
+    char tema[50];
+    printf("Ingresa el tema de la propuesta (educacion, salud, etc.): ");
+    fgets(tema, sizeof(tema), stdin);
+    tema[strcspn(tema, "\n")] = '\0'; // Eliminar el salto de línea
+    nuevaPropuesta->tema = (char *)malloc(strlen(tema) + 1);
+    strcpy(nuevaPropuesta->tema, tema);
+
+    nuevaPropuesta->personaAcargo = autor;
+
+    printf("Propuesta creada exitosamente.\n");
+
+    return insertarPropuesta(raiz, nuevaPropuesta); // Insertar en el ABB
+}
 
 /* Función para mostrar senadores */
 void mostrarSenadores(struct nodoSenador *senadores) {
@@ -357,9 +417,20 @@ void mostrarPresidente(struct presidente *presidente) {
     printf("================================\n");
 }
 
-void camaraDeOrigen(struct propuesta *propuesta, struct congreso *congreso) {
+void camaraDeOrigen(struct nodoPropuestas *raizPropuestas, struct congreso *congreso) {
+    int idPropuesta;
+    printf("Ingresa el ID de la propuesta a discutir: ");
+    scanf("%d", &idPropuesta);
+
+    // Buscar la propuesta por ID en el ABB
+    struct propuesta *propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
+    if (propuesta == NULL) {
+        printf("Propuesta con ID %d no encontrada.\n", idPropuesta);
+        return;
+    }
+
     int votosAFavor = 0, votosEnContra = 0;
-    
+
     // Verificar si el proyecto debe iniciar en la Cámara de Diputados o en el Senado
     if (strcmp(propuesta->tipo, "financiero") == 0 || strcmp(propuesta->tipo, "tributario") == 0) {
         printf("El proyecto de tipo %s debe ser discutido primero en la Cámara de Diputados.\n", propuesta->tipo);
@@ -378,7 +449,7 @@ void camaraDeOrigen(struct propuesta *propuesta, struct congreso *congreso) {
                 votosEnContra++;
             }
             rec = rec->sig;
-        } while (rec != congreso->diputados);  // Iteración completa de lista circular de diputados
+        } while (rec != congreso->diputados);  // Iteración completa de la lista circular de diputados
         
     } else {
         printf("El proyecto de tipo %s será discutido en el Senado.\n", propuesta->tipo);
@@ -397,7 +468,7 @@ void camaraDeOrigen(struct propuesta *propuesta, struct congreso *congreso) {
                 votosEnContra++;
             }
             rec = rec->sig;
-        } while (rec != congreso->senadores);  // Iteración completa de lista circular de senadores
+        } while (rec != congreso->senadores);  // Iteración completa de la lista circular de senadores
     }
 
     // Mostrar resultados de la votación
@@ -411,66 +482,10 @@ void camaraDeOrigen(struct propuesta *propuesta, struct congreso *congreso) {
         printf("La idea de legislar ha sido rechazada. El proyecto no avanza.\n");
     }
 }
-struct nodoPropuestas *insertarPropuesta(struct nodoPropuestas *raiz, struct propuesta *nuevaPropuesta) {
-    if (raiz == NULL) {
-        struct nodoPropuestas *nuevoNodo = (struct nodoPropuestas *)malloc(sizeof(struct nodoPropuestas));
-        nuevoNodo->datos = nuevaPropuesta;
-        nuevoNodo->izq = nuevoNodo->der = NULL;
-        return nuevoNodo;
-    }
-    
-    if (nuevaPropuesta->id < raiz->datos->id) {
-        raiz->izq = insertarPropuesta(raiz->izq, nuevaPropuesta);
-    } else if (nuevaPropuesta->id > raiz->datos->id) {
-        raiz->der = insertarPropuesta(raiz->der, nuevaPropuesta);
-    } else {
-        printf("Propuesta con ID %d ya existe.\n", nuevaPropuesta->id);
-    }
-    
-    return raiz;
-}
 
 
-struct nodoPropuestas *crearPropuesta(struct nodoPropuestas *raiz, struct persona *autor) {
-    struct propuesta *nuevaPropuesta = (struct propuesta *)malloc(sizeof(struct propuesta));
 
-    printf("Ingresa el ID de la propuesta: ");
-    scanf("%d", &nuevaPropuesta->id);
-    limpiarBuffer();
 
-    char tipo[50];
-    printf("Ingresa el tipo de propuesta (financiero, tributario, educacion, etc.): ");
-    fgets(tipo, sizeof(tipo), stdin);
-    tipo[strcspn(tipo, "\n")] = '\0'; // Eliminar el salto de línea
-    nuevaPropuesta->tipo = (char *)malloc(strlen(tipo) + 1);
-    strcpy(nuevaPropuesta->tipo, tipo);
-
-    char tema[50];
-    printf("Ingresa el tema de la propuesta (educacion, salud, etc.): ");
-    fgets(tema, sizeof(tema), stdin);
-    tema[strcspn(tema, "\n")] = '\0'; // Eliminar el salto de línea
-    nuevaPropuesta->tema = (char *)malloc(strlen(tema) + 1);
-    strcpy(nuevaPropuesta->tema, tema);
-
-    nuevaPropuesta->personaAcargo = autor;
-
-    printf("Propuesta creada exitosamente.\n");
-
-    return insertarPropuesta(raiz, nuevaPropuesta); // Insertar en el ABB
-}
-struct propuesta *buscarPropuesta(struct nodoPropuestas *raiz, int id) {
-    if (raiz == NULL) {
-        return NULL; // No encontrada
-    }
-
-    if (id == raiz->datos->id) {
-        return raiz->datos;
-    } else if (id < raiz->datos->id) {
-        return buscarPropuesta(raiz->izq, id);
-    } else {
-        return buscarPropuesta(raiz->der, id);
-    }
-}
 
 void mostrarPropuesta(struct propuesta *propuesta) {
     if (propuesta == NULL) {
@@ -942,7 +957,7 @@ int main() {
             if (propuestas == NULL) {
                 printf("Primero debes crear una propuesta para iniciar la Cámara de Origen.\n");
             } else {
-                camaraDeOrigen(propuestas->datos, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
+                camaraDeOrigen(propuestas, &congreso);  // Asegurarse de pasar la estructura congreso correctamente
             }
 
         } else if (opcion == 13) {
