@@ -77,6 +77,9 @@ Francisco Espinoza
     SE DEBE MODIFICAR:
         -COMISION MIXTA
 
+--IMPORTANTE---
+    SE DEBE ARREGLAR EL MAIN YA QUE AL UTILIZAR EL STRUCT CONGRESO LO USA CON "." EN VEZ DE "->"
+
 */
 struct ProcesoLegislativo{
   struct presidente *presidente;
