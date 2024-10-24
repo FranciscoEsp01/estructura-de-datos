@@ -369,12 +369,12 @@ struct nodoCiudadano *agregarCiudadano(struct nodoCiudadano *ciudadanos, struct 
 
 
 void mostrarCiudadanos(struct nodoCiudadano *ciudadanos) {
+    struct nodoCiudadano *rec = ciudadanos;
     if (ciudadanos == NULL) {
         printf("No hay ciudadanos en el sistema.\n");
         return;
     }
 
-    struct nodoCiudadano *rec = ciudadanos;
     while (rec != NULL) {
         printf("Nombre: %s\n", rec->datos->nombre);
         printf("RUT: %s\n", rec->datos->rut);
