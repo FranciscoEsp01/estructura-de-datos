@@ -119,6 +119,21 @@ Simon Ledezma
     iba a meter datos de prueba pero no se q wea hice y no quiso andar </3
     
 */
+
+/* cambios 1.10
+Francisco Espinoza
+    - se modifico la funcion de comision mixta, ahora busca el proyecto por ID
+    - se arreglo uno de los 10 warnings de VS code
+
+*/
+
+/* --- NOTA ---
+    el dia de hoy se va revisar el codigo en turbo C para tener constancia de los warnings y errores que se den en este
+    Hora: 20:30.
+    favor de ingresar
+    primera constancia: [numero de errores]
+
+*/
 struct ProcesoLegislativo{
   struct presidente *presidente;
   struct congreso *congreso;
@@ -958,7 +973,7 @@ void promulgacionOVetoPresidencial(struct presidente *presidente, struct nodoPro
                 } while (recSenador != congreso->senadores);
             }
 
-            if ((votosFavor * 3) >= (votosTotales * 2)) {
+            if ((votosFavor * 3) >= (votosTotales * 2 && votosContra < votosFavor)) {
                 printf("El Congreso ha rechazado el veto con una mayoría de dos tercios.\n");
                 printf("La propuesta será promulgada tal como fue aprobada por el Congreso.\n");
         
@@ -993,9 +1008,21 @@ int votoSenadorCmMixta(struct nodoSenador *senador) {
     return voto;
 }
 
-void comisionMixta(struct propuesta *propuesta, struct congreso *congreso) {
+void comisionMixta(struct nodoPropuestas *raizPropuestas, struct congreso *congreso) {
+    int idPropuesta;
+    printf("Ingresa el ID de la propuesta a enviar a la Comisión Mixta: ");
+    scanf("%d", &idPropuesta);
+    limpiarBuffer();  // Para evitar errores al leer entrada
+
+    // Buscar la propuesta por ID en el ABB de propuestas
+    struct propuesta *propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
+    if (propuesta == NULL) {
+        printf("Propuesta con ID %d no encontrada.\n", idPropuesta);
+        return;
+    }
+
     printf("\n===== Comisión Mixta =====\n");
-    printf("La propuesta ha sido enviada a la Comisión Mixta para resolver las discrepancias entre las cámaras.\n");
+    printf("La propuesta '%s' ha sido enviada a la Comisión Mixta para resolver discrepancias.\n", propuesta->tema);
 
     int votoDiputado, votoSenador;
     int votosAFavorDiputados = 0, votosEnContraDiputados = 0;
@@ -1049,7 +1076,7 @@ void comisionMixta(struct propuesta *propuesta, struct congreso *congreso) {
     // Si hay consenso, se procede a enviar el informe a ambas cámaras
     if (consenso) {
         printf("\nEl proyecto se envía a ambas cámaras para su votación final...\n");
-        
+
         int votosAFavorTotal = votosAFavorDiputados + votosAFavorSenadores;
         int votosEnContraTotal = votosEnContraDiputados + votosEnContraSenadores;
 
@@ -1098,7 +1125,7 @@ int main() {
     struct nodoPropuestas *propuestas = NULL;  // Árbol de propuestas
 
     int opcion;
-    char rut[20], nombre[50], especialidad[50], cargo[20];
+    char *rut, *nombre, *especialidad, *cargo;
     int edad, voto, anioMandato;
     int salir = 0;
 
@@ -1259,7 +1286,7 @@ int main() {
             if (propuestas == NULL) {
                 printf("Primero debes crear una propuesta para enviar a la Comisión Mixta.\n");
             } else {
-                comisionMixta(propuestas->datos, congreso);  // Asegurarse de pasar la estructura congreso correctamente
+                comisionMixta(propuestas, congreso);  // Asegurarse de pasar la estructura congreso correctamente
             }
             pause();
             
