@@ -124,6 +124,7 @@ Simon Ledezma
 Francisco Espinoza
     - se modifico la funcion de comision mixta, ahora busca el proyecto por ID
     - se arreglo uno de los 10 warnings de VS code
+    -se encuentra probema en agregar presidente (segmentation fault)
 
 */
 
