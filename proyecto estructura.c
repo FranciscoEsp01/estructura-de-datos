@@ -162,7 +162,7 @@ struct propuesta{
     int id;
     char *tipo;
     char *tema;
-    struct persona *personaAcargo;
+    struct persona *personaAcargo; //cambiar a patrocinador
     char *estado;
 };
 
@@ -229,7 +229,7 @@ void limpiarBuffer() {
     }
 }
 
-struct persona *crearPersona(char *rut, char *nombre, int edad, char *especialidad, int voto, int cargo) {
+struct persona *crearPersona(char *rut, char *nombre, int edad, char *especialidad, int voto) {
 
     struct persona *nuevaPersona;
     nuevaPersona = (struct persona *) malloc(sizeof(struct persona));
@@ -242,7 +242,7 @@ struct persona *crearPersona(char *rut, char *nombre, int edad, char *especialid
 
     nuevaPersona->edad = edad;
 
-    nuevaPersona->cargo = cargo;
+    nuevaPersona->cargo = 0;
 
     nuevaPersona->especialidad = (char *) malloc(sizeof(char) * strlen(especialidad) + 1);
     strcpy(nuevaPersona->especialidad, especialidad);
@@ -257,7 +257,7 @@ struct persona* crearCiudadano() {
 
     struct persona *nuevoCiudadano;
     char rut[20], nombre[50], especialidad[50];
-    int edad, voto, cargo;
+    int edad, voto;
 
     printf("Ingresa el RUT: ");
     fgets(rut, sizeof(rut), stdin);
@@ -283,27 +283,9 @@ struct persona* crearCiudadano() {
     fgets(especialidad, sizeof(especialidad), stdin);
     especialidad[strcspn(especialidad, "\n")] = '\0';
 
-    printf("Ingresa el cargo (0 = Ciudadano, 1 = Diputado, 2 = Senador, 3 = Presidente): ");
-
-    while (1) {
-        if (scanf("%d", &cargo) == 1) {
-            if (cargo >= 0 && cargo <= 2) {
-                limpiarBuffer();
-                break;
-            } else if (cargo == 3) {
-                printf("No puedes crear un presidente directamente. Debe ser ingresado mediante la opcion 7 luego de ser creado como ciudadano.\n");
-            } else {
-                printf("Cargo inválido. Inténtalo de nuevo\n");
-            }
-        } else {
-            printf("Entrada inválida. Inténtalo de nuevo\n");
-            limpiarBuffer();
-        }
-    }
-
     voto = 0; // Inicialmente no ha votado en nada
 
-    nuevoCiudadano = crearPersona(rut, nombre, edad, especialidad, voto, cargo);
+    nuevoCiudadano = crearPersona(rut, nombre, edad, especialidad, voto);
     return nuevoCiudadano;
 }
 
