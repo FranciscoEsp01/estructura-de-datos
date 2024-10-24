@@ -125,6 +125,8 @@ Francisco Espinoza
     - se modifico la funcion de comision mixta, ahora busca el proyecto por ID
     - se arreglo uno de los 10 warnings de VS code
     -se encuentra probema en agregar presidente (segmentation fault)
+    - se agrega la funcion de publicacion y entrada en vigencia
+    --- SIN REVISAR---
 
 */
 
@@ -1092,6 +1094,69 @@ void comisionMixta(struct nodoPropuestas *raizPropuestas, struct congreso *congr
         }
     }
 }
+// Función para crear un nuevo boletín
+struct nodoBoletin *crearBoletin(struct propuesta *propuesta, char *fechaPublicacion, char *fechaVigencia, int numeroBoletin) {
+    struct nodoBoletin *nuevoBoletin = (struct nodoBoletin *)malloc(sizeof(struct nodoBoletin));
+    struct boletin *nuevoBoletinHead = (struct boletin *)malloc(sizeof(struct boletin));
+
+    nuevoBoletinHead->propuesta = propuesta;
+    nuevoBoletinHead->numeroBoletin = numeroBoletin;
+
+    // Asignar fecha de publicación
+    nuevoBoletinHead->fechaVigencia = (char *)malloc(strlen(fechaVigencia) + 1);
+    strcpy(nuevoBoletinHead->fechaVigencia, fechaVigencia);
+
+    nuevoBoletin->head = nuevoBoletinHead;
+    nuevoBoletin->sig = NULL;
+
+    return nuevoBoletin;
+}
+
+// Función para publicar una ley en el boletín y establecer su fecha de entrada en vigencia
+struct nodoBoletin* publicarLeyEnBoletin(struct nodoBoletin *boletinEstado, struct propuesta *propuesta) {
+    char fechaPublicacion[20];
+    char fechaVigencia[20];
+    int entradaInmediata = 0;
+    
+    printf("Ingresa la fecha de publicación (dd/mm/yyyy) para la ley '%s': ", propuesta->tema);
+    fgets(fechaPublicacion, sizeof(fechaPublicacion), stdin);
+    fechaPublicacion[strcspn(fechaPublicacion, "\n")] = '\0';  // Eliminar el salto de línea
+
+    printf("Ley '%s' promulgada. ¿La ley entra en vigencia de manera inmediata? (1 = Sí, 0 = No): ", propuesta->tema);
+    scanf("%d", &entradaInmediata);
+    limpiarBuffer();  // Para evitar problemas con fgets después de scanf
+
+    if (entradaInmediata == 1) {
+        strcpy(fechaVigencia, fechaPublicacion);  // Vigencia inmediata
+    } else {
+        printf("Ingresa la fecha de entrada en vigencia (dd/mm/yyyy): ");
+        fgets(fechaVigencia, sizeof(fechaVigencia), stdin);
+        fechaVigencia[strcspn(fechaVigencia, "\n")] = '\0';  // Eliminar el salto de línea
+    }
+
+    // Crear el nuevo boletín
+    static int numeroBoletin = 1;  // Contador de boletines, incrementa con cada publicación
+    struct nodoBoletin *nuevoBoletin = crearBoletin(propuesta, fechaPublicacion, fechaVigencia, numeroBoletin);
+    numeroBoletin++;
+
+    // Agregar el boletín al final de la lista
+    if (boletinEstado == NULL) {
+        boletinEstado = nuevoBoletin;
+    } else {
+        struct nodoBoletin *temp = boletinEstado;
+        while (temp->sig != NULL) {
+            temp = temp->sig;
+        }
+        temp->sig = nuevoBoletin;
+    }
+
+    printf("La ley '%s' ha sido publicada en el Diario Oficial bajo el Boletín N°%d y entrará en vigencia el %s.\n", 
+            propuesta->tema, nuevoBoletin->head->numeroBoletin, fechaVigencia);
+
+    return boletinEstado;
+}
+
+
 
 /* Función mostrarMenu con nueva opción para veto presidencial */
 void mostrarMenu() {
@@ -1113,7 +1178,8 @@ void mostrarMenu() {
     printf("15. Eliminar Diputado\n");
     printf("16. Eliminar Senador\n");
     printf("17. Comisión Mixta\n");
-    printf("18. Salir\n");
+    printf("18. Publicar Ley en Boletín y Establecer Vigencia\n");
+    printf("19. Salir\n");
     printf("================\n");
 }
 
@@ -1124,9 +1190,10 @@ int main() {
     struct nodoCiudadano *ciudadanos = NULL;
     struct presidente *presidente = NULL;
     struct nodoPropuestas *propuestas = NULL;  // Árbol de propuestas
+    struct nodoBoletin *boletinEstado = NULL;  // Lista de boletines
 
     int opcion;
-    char *rut, *nombre, *especialidad, *cargo;
+    char rut[20], nombre[50], especialidad[50];  // Cambiado a array estático
     int edad, voto, anioMandato;
     int salir = 0;
 
@@ -1140,16 +1207,6 @@ int main() {
 
     congreso->diputados = NULL;  // Inicializando en NULL para evitar acceso a memoria no válida
     congreso->senadores = NULL;
-
-    /* Datos de ciudadanos de prueba
-
-    struct ciudadano *ciudadano1 = crearPersona("12345678-9", "Juan Perez", 30, "Ingeniero", 1, "Ciudadano");
-    struct ciudadano *ciudadano2 = crearPersona("98765432-1", "Maria Lopez", 25, "Abogada", 0, "Ciudadano");
-    struct ciudadano *ciudadano3 = crearPersona("11223344-5", "Carlos Sanchez", 40, "Doctor", 1, "Ciudadano");
-    struct ciudadano *ciudadano4 = crearPersona("55667788-0", "Ana Martinez", 35, "Arquitecta", 1, "Ciudadano");
-    struct ciudadano *ciudadano5 = crearPersona("99887766-5", "Luis Gomez", 28, "Economista", 0, "Ciudadano");
-
-    */
 
     do {
         cls();
@@ -1174,7 +1231,7 @@ int main() {
             printf("Ingresa el RUT del ciudadano a agregar como diputado: ");
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
-            congreso->diputados = agregarDiputado(congreso->diputados, ciudadanos, rut); // Modificar correctamente la lista de diputados
+            congreso->diputados = agregarDiputado(congreso->diputados, ciudadanos, rut);  // Modificar correctamente la lista de diputados
             pause();
 
         } else if (opcion == 4) {
@@ -1204,9 +1261,9 @@ int main() {
             struct persona *personaPresidente = buscarCiudadanoPorRUT(ciudadanos, rut);
             if (personaPresidente == NULL) {
                 printf("El ciudadano con RUT %s no existe.\n", rut);
+            } else {
+                presidente = crearPresidente(personaPresidente);  // Asignamos al presidente
             }
-
-            presidente = crearPresidente(personaPresidente);
             pause();
     
         } else if (opcion == 8) {
@@ -1231,7 +1288,7 @@ int main() {
             limpiarBuffer();
 
             struct propuesta *propuestaEncontrada = buscarPropuesta(propuestas, idPropuesta);
-            mostrarPropuesta(propuestaEncontrada); // Esta función ya maneja el caso si la propuesta es NULL
+            mostrarPropuesta(propuestaEncontrada);  // Esta función ya maneja el caso si la propuesta es NULL
             pause();
 
         } else if (opcion == 11) {
@@ -1256,16 +1313,16 @@ int main() {
                 camaraRevisora(propuestas, congreso);  // Asegurarse de pasar la estructura congreso correctamente
             }
             pause();
+
         } else if (opcion == 14) {
             // Promulgación o Veto Presidencial
             if (presidente == NULL || propuestas == NULL) {
                 printf("Se necesita tanto un presidente como una propuesta para proceder con la promulgación o veto.\n");
-                
             } else {
                 promulgacionOVetoPresidencial(presidente, propuestas, congreso);  // Asegurarse de pasar la estructura congreso correctamente
-                
             }
             pause();
+
         } else if (opcion == 15) {
             // Eliminar Diputado
             printf("Ingresa el RUT del diputado a eliminar: ");
@@ -1281,7 +1338,7 @@ int main() {
             rut[strcspn(rut, "\n")] = '\0';
             congreso->senadores = eliminarSenador(congreso->senadores, rut);  // Modificar correctamente la lista de senadores
             pause();
-            
+
         } else if (opcion == 17) {
             // Comisión Mixta
             if (propuestas == NULL) {
@@ -1290,8 +1347,23 @@ int main() {
                 comisionMixta(propuestas, congreso);  // Asegurarse de pasar la estructura congreso correctamente
             }
             pause();
-            
+
         } else if (opcion == 18) {
+            // Publicar Ley en Boletín y Establecer Vigencia
+            int idPropuesta;
+            printf("Ingresa el ID de la propuesta a publicar: ");
+            scanf("%d", &idPropuesta);
+            limpiarBuffer();  // Limpiar el buffer
+
+            struct propuesta *propuesta = buscarPropuesta(propuestas, idPropuesta);
+            if (propuesta == NULL) {
+                printf("Propuesta con ID %d no encontrada.\n", idPropuesta);
+            } else {
+                boletinEstado = publicarLeyEnBoletin(boletinEstado, propuesta);
+            }
+            pause();
+
+        } else if (opcion == 19) {
             printf("Saliendo del programa...\n");
             salir = 1;
             pause();
