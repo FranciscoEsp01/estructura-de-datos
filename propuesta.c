@@ -130,12 +130,18 @@ Francisco Espinoza
 
 */
 
+/* cambios 1.11
+Francisco espinoza
+    - se arreglan los structs del main
+    - se arreglan los warnings de datos sin utilizar
+    ---SE DEBE PROBAR EN TURBO C---
+*/
 /* --- NOTA ---
-    el dia de hoy se va revisar el codigo en turbo C para tener constancia de los warnings y errores que se den en este
+    EL DIA DE HOY SE VA REVISAR EL CODIGO EN TURBO C //VIERNES 25]
     Hora: 20:30.
     favor de ingresar
-    primera constancia: [numero de errores]
-
+    primera constancia: [26] // 20 ARREGLADOS
+    segunda constancia [numero de errores]
 */
 struct ProcesoLegislativo{
   struct presidente *presidente;
@@ -406,7 +412,8 @@ struct nodoDiputado *crearNodoDiputado(struct persona *diputado){
 
 struct nodoDiputado *agregarDiputado(struct nodoDiputado *diputados, struct nodoCiudadano *ciudadanos, char *rut) {
     struct persona *ciudadano = buscarCiudadanoPorRUT(ciudadanos, rut);
-    
+    struct nodoDiputado *nuevoDiputado = crearNodoDiputado(ciudadano);
+
     if (ciudadano == NULL) {
         printf("Ciudadano con RUT %s no encontrado.\n", rut);
         return diputados;
@@ -428,7 +435,7 @@ struct nodoDiputado *agregarDiputado(struct nodoDiputado *diputados, struct nodo
     }
 
     ciudadano->cargo = 1;
-    struct nodoDiputado *nuevoDiputado = crearNodoDiputado(ciudadano);
+
 
     if (diputados == NULL) {
         diputados = nuevoDiputado;
@@ -481,7 +488,9 @@ struct nodoPropuestas *insertarPropuesta(struct nodoPropuestas *raiz, struct pro
 }
 
 struct presidente *crearPresidente(struct persona *persona) {
+    struct presidente *nuevoPresidente;
     int anioMandato;
+
 
     if (persona->cargo == 1) {
         printf("La persona tiene el cargo de diputado.\n");
@@ -499,7 +508,6 @@ struct presidente *crearPresidente(struct persona *persona) {
     scanf("%d", &anioMandato);
     limpiarBuffer();
 
-    struct presidente *nuevoPresidente;
     nuevoPresidente = (struct presidente *)malloc(sizeof(struct presidente));
 
     nuevoPresidente->persona = persona;
@@ -526,6 +534,7 @@ struct nodoSenador *crearNodoSenador(struct persona *senador) {
 /* Función para agregar un senador */
 struct nodoSenador *agregarSenador(struct nodoSenador *senadores, struct nodoCiudadano *ciudadanos, char *rut) {
     struct persona *ciudadano = buscarCiudadanoPorRUT(ciudadanos, rut);
+    struct nodoSenador *nuevoSenador = crearNodoSenador(ciudadano);
 
     if (ciudadano == NULL) {
         printf("Ciudadano con RUT %s no encontrado.\n", rut);
@@ -542,7 +551,7 @@ struct nodoSenador *agregarSenador(struct nodoSenador *senadores, struct nodoCiu
     }
 
     ciudadano->cargo = 2;
-    struct nodoSenador *nuevoSenador = crearNodoSenador(ciudadano);
+
 
     if (senadores == NULL) {
         senadores = nuevoSenador;
@@ -578,19 +587,19 @@ struct propuesta *buscarPropuesta(struct nodoPropuestas *raiz, int id) {
 
 struct nodoPropuestas *crearPropuesta(struct nodoPropuestas *raiz, struct persona *autor) {
     struct propuesta *nuevaPropuesta = (struct propuesta *)malloc(sizeof(struct propuesta));
+    char tipo[50];
+    char tema[50];
 
     printf("Ingresa el ID de la propuesta: ");
     scanf("%d", &nuevaPropuesta->id);
     limpiarBuffer();
 
-    char tipo[50];
     printf("Ingresa el tipo de propuesta (financiero, tributario, educacion, etc.): ");
     fgets(tipo, sizeof(tipo), stdin);
     tipo[strcspn(tipo, "\n")] = '\0'; // Eliminar el salto de línea
     nuevaPropuesta->tipo = (char *)malloc(strlen(tipo) + 1);
     strcpy(nuevaPropuesta->tipo, tipo);
 
-    char tema[50];
     printf("Ingresa el tema de la propuesta (educacion, salud, etc.): ");
     fgets(tema, sizeof(tema), stdin);
     tema[strcspn(tema, "\n")] = '\0'; // Eliminar el salto de línea
@@ -606,12 +615,12 @@ struct nodoPropuestas *crearPropuesta(struct nodoPropuestas *raiz, struct person
 
 /* Función para mostrar senadores */
 void mostrarSenadores(struct nodoSenador *senadores) {
+    struct nodoSenador *rec = senadores;
     if (senadores == NULL) {
         printf("No hay senadores en la lista.\n");
         return;
     }
 
-    struct nodoSenador *rec = senadores;
     do {
         printf("Nombre: %s\n", rec->headSenadores->nombre);
         printf("Edad: %d\n", rec->headSenadores->edad);
@@ -637,57 +646,58 @@ void mostrarPresidente(struct presidente *presidente) {
 }
 
 void camaraDeOrigen(struct nodoPropuestas *raizPropuestas, struct congreso *congreso) {
+    struct propuesta *propuesta = NULL;
+    struct nodoDiputado *recDiputados = congreso->diputados;
+    struct nodoSenador *recSenadores = congreso->senadores;
     int idPropuesta;
+    int votosAFavor = 0, votosEnContra = 0;
+
     printf("Ingresa el ID de la propuesta a discutir: ");
     scanf("%d", &idPropuesta);
+    propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
 
     // Buscar la propuesta por ID en el ABB
-    struct propuesta *propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
     if (propuesta == NULL) {
         printf("Propuesta con ID %d no encontrada.\n", idPropuesta);
         return;
     }
-
-    int votosAFavor = 0, votosEnContra = 0;
 
     // Verificar si el proyecto debe iniciar en la Cámara de Diputados o en el Senado
     if (strcmp(propuesta->tipo, "financiero") == 0 || strcmp(propuesta->tipo, "tributario") == 0) {
         printf("El proyecto de tipo %s debe ser discutido primero en la Cámara de Diputados.\n", propuesta->tipo);
         
         // Simular votación de todos los miembros de la Cámara de Diputados
-        struct nodoDiputado *rec = congreso->diputados;
-        if (rec == NULL) {
+        if (recDiputados == NULL) {
             printf("No hay diputados disponibles para votar.\n");
             return;
         }
 
         do {
-            if (rec->headDiputados->voto == 1) {
+            if (recDiputados->headDiputados->voto == 1) {
                 votosAFavor++;
             } else {
                 votosEnContra++;
             }
-            rec = rec->sig;
-        } while (rec != congreso->diputados);  // Iteración completa de la lista circular de diputados
+            recDiputados = recDiputados->sig;
+        } while (recDiputados != congreso->diputados);  // Iteración completa de la lista circular de diputados
         
     } else {
         printf("El proyecto de tipo %s será discutido en el Senado.\n", propuesta->tipo);
         
         // Simular votación de todos los miembros del Senado
-        struct nodoSenador *rec = congreso->senadores;
-        if (rec == NULL) {
+        if (recSenadores == NULL) {
             printf("No hay senadores disponibles para votar.\n");
             return;
         }
 
         do {
-            if (rec->headSenadores->voto == 1) {
+            if (recSenadores->headSenadores->voto == 1) {
                 votosAFavor++;
             } else {
                 votosEnContra++;
             }
-            rec = rec->sig;
-        } while (rec != congreso->senadores);  // Iteración completa de la lista circular de senadores
+            recSenadores = recSenadores->sig;
+        } while (recSenadores != congreso->senadores);  // Iteración completa de la lista circular de senadores
     }
 
     // Mostrar resultados de la votación
@@ -741,12 +751,12 @@ void mostrarPropuestas(struct nodoPropuestas *raiz) {
 }
 
 struct nodoDiputado *eliminarDiputado(struct nodoDiputado *diputados, char *rut) {
+    struct nodoDiputado *rec = diputados;
     if (diputados == NULL) {
         printf("La lista de diputados está vacía.\n");
         return NULL;
     }
 
-    struct nodoDiputado *rec = diputados;
 
     // Buscar el diputado por RUT
     do {
@@ -776,12 +786,12 @@ struct nodoDiputado *eliminarDiputado(struct nodoDiputado *diputados, char *rut)
 }
 
 struct nodoSenador *eliminarSenador(struct nodoSenador *senadores, char *rut) {
+    struct nodoSenador *rec = senadores;
     if (senadores == NULL) {
         printf("La lista de senadores está vacía.\n");
         return NULL;
     }
 
-    struct nodoSenador *rec = senadores;
 
     // Buscar el senador por RUT
     do {
@@ -813,12 +823,15 @@ struct nodoSenador *eliminarSenador(struct nodoSenador *senadores, char *rut) {
 /* Función para manejar la Cámara Revisora */
 /* Función para manejar la Cámara Revisora */
 void camaraRevisora(struct nodoPropuestas *raizPropuestas, struct congreso *congreso) {
+    struct propuesta *propuesta;
     int idPropuesta;
+    int votosAFavor = 0, votosEnContra = 0;
+    int modificacion = 0;  // Si la Cámara Revisora propone modificaciones
+    propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
     printf("Ingresa el ID de la propuesta a discutir en la Cámara Revisora: ");
     scanf("%d", &idPropuesta);
 
     // Buscar la propuesta por ID en el ABB
-    struct propuesta *propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
     if (propuesta == NULL) {
         printf("Propuesta con ID %d no encontrada.\n", idPropuesta);
         return;
@@ -826,8 +839,6 @@ void camaraRevisora(struct nodoPropuestas *raizPropuestas, struct congreso *cong
 
     printf("La propuesta con ID %d ha llegado a la Cámara Revisora.\n", idPropuesta);
 
-    int votosAFavor = 0, votosEnContra = 0;
-    int modificacion = 0;  // Si la Cámara Revisora propone modificaciones
 
     // Lógica de votación en la Cámara Revisora
     if (strcmp(propuesta->tipo, "financiero") == 0 || strcmp(propuesta->tipo, "tributario") == 0) {
@@ -880,7 +891,9 @@ void camaraRevisora(struct nodoPropuestas *raizPropuestas, struct congreso *cong
 void promulgacionOVetoPresidencial(struct presidente *presidente, struct nodoPropuestas *raizPropuestas, struct congreso *congreso) {
     int idPropuesta;
     int decisionPresidencial;
-
+    int decisionCongreso;
+    struct propuesta *propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
+    
     if (presidente == NULL) {
         printf("No hay un presidente registrado.\n");
         return;
@@ -890,7 +903,6 @@ void promulgacionOVetoPresidencial(struct presidente *presidente, struct nodoPro
     scanf("%d", &idPropuesta);
 
     // Buscar la propuesta por ID en el ABB
-    struct propuesta *propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
     if (propuesta == NULL) {
         printf("Propuesta con ID %d no encontrada.\n", idPropuesta);
         return;
@@ -917,7 +929,6 @@ void promulgacionOVetoPresidencial(struct presidente *presidente, struct nodoPro
     else if (decisionPresidencial == 3) {
         printf("El presidente %s ha vetado parcialmente la propuesta \"%s\" y ha sugerido modificaciones.\n", presidente->persona->nombre, propuesta->tema);
         
-        int decisionCongreso;
         printf("El Congreso debe decidir si acepta las modificaciones.\n");
         printf("1. Aceptar las modificaciones del presidente\n");
         printf("2. Rechazar el veto con una mayoría de dos tercios\n");
@@ -994,13 +1005,23 @@ int votoSenadorCmMixta(struct nodoSenador *senador) {
 }
 
 void comisionMixta(struct nodoPropuestas *raizPropuestas, struct congreso *congreso) {
+    struct propuesta *propuesta = NULL;
+    struct nodoDiputado *diputadoRec = congreso->diputados;
+    struct nodoSenador *senadorRec = congreso->senadores;
+
     int idPropuesta;
+    int votoDiputado, votoSenador;
+    int votosAFavorDiputados = 0, votosEnContraDiputados = 0;
+    int votosAFavorSenadores = 0, votosEnContraSenadores = 0;
+    int consenso = 0;
+    int votosAFavorTotal = 0, votosEnContraTotal = 0;
+    
     printf("Ingresa el ID de la propuesta a enviar a la Comisión Mixta: ");
     scanf("%d", &idPropuesta);
+    propuesta  = buscarPropuesta(raizPropuestas, idPropuesta);
     limpiarBuffer();  // Para evitar errores al leer entrada
 
     // Buscar la propuesta por ID en el ABB de propuestas
-    struct propuesta *propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
     if (propuesta == NULL) {
         printf("Propuesta con ID %d no encontrada.\n", idPropuesta);
         return;
@@ -1009,14 +1030,9 @@ void comisionMixta(struct nodoPropuestas *raizPropuestas, struct congreso *congr
     printf("\n===== Comisión Mixta =====\n");
     printf("La propuesta '%s' ha sido enviada a la Comisión Mixta para resolver discrepancias.\n", propuesta->tema);
 
-    int votoDiputado, votoSenador;
-    int votosAFavorDiputados = 0, votosEnContraDiputados = 0;
-    int votosAFavorSenadores = 0, votosEnContraSenadores = 0;
-    int consenso = 0;
 
     // Votación de los diputados en la Comisión Mixta
     printf("\nVotación de los Diputados en la Comisión Mixta:\n");
-    struct nodoDiputado *diputadoRec = congreso->diputados;
     if (diputadoRec != NULL) {
         do {
             votoDiputado = votoDiputadoCmMixta(diputadoRec);
@@ -1034,7 +1050,6 @@ void comisionMixta(struct nodoPropuestas *raizPropuestas, struct congreso *congr
 
     // Votación de los senadores en la Comisión Mixta
     printf("\nVotación de los Senadores en la Comisión Mixta:\n");
-    struct nodoSenador *senadorRec = congreso->senadores;
     if (senadorRec != NULL) {
         do {
             votoSenador = votoSenadorCmMixta(senadorRec);
@@ -1062,8 +1077,8 @@ void comisionMixta(struct nodoPropuestas *raizPropuestas, struct congreso *congr
     if (consenso) {
         printf("\nEl proyecto se envía a ambas cámaras para su votación final...\n");
 
-        int votosAFavorTotal = votosAFavorDiputados + votosAFavorSenadores;
-        int votosEnContraTotal = votosEnContraDiputados + votosEnContraSenadores;
+        votosAFavorTotal = votosAFavorDiputados + votosAFavorSenadores;
+        votosEnContraTotal = votosEnContraDiputados + votosEnContraSenadores;
 
         // Mostrar el resultado final de la votación combinada
         printf("Votos totales a favor: %d\n", votosAFavorTotal);
@@ -1077,7 +1092,7 @@ void comisionMixta(struct nodoPropuestas *raizPropuestas, struct congreso *congr
     }
 }
 // Función para crear un nuevo boletín
-struct nodoBoletin *crearBoletin(struct propuesta *propuesta, char *fechaPublicacion, char *fechaVigencia, int numeroBoletin) {
+struct nodoBoletin *crearBoletin(struct propuesta *propuesta, char *fechaVigencia, int numeroBoletin) {
     struct nodoBoletin *nuevoBoletin = (struct nodoBoletin *)malloc(sizeof(struct nodoBoletin));
     struct boletin *nuevoBoletinHead = (struct boletin *)malloc(sizeof(struct boletin));
 
@@ -1096,6 +1111,7 @@ struct nodoBoletin *crearBoletin(struct propuesta *propuesta, char *fechaPublica
 
 // Función para publicar una ley en el boletín y establecer su fecha de entrada en vigencia
 struct nodoBoletin* publicarLeyEnBoletin(struct nodoBoletin *boletinEstado, struct propuesta *propuesta) {
+    struct nodoBoletin *nuevoBoletin = NULL;
     char fechaPublicacion[20];
     char fechaVigencia[20];
     int entradaInmediata = 0;
@@ -1117,8 +1133,9 @@ struct nodoBoletin* publicarLeyEnBoletin(struct nodoBoletin *boletinEstado, stru
     }
 
     // Crear el nuevo boletín
+    /*static amigos xupan*/
     static int numeroBoletin = 1;  // Contador de boletines, incrementa con cada publicación
-    struct nodoBoletin *nuevoBoletin = crearBoletin(propuesta, fechaPublicacion, fechaVigencia, numeroBoletin);
+    nuevoBoletin = crearBoletin(propuesta, fechaVigencia, numeroBoletin);
     numeroBoletin++;
 
     // Agregar el boletín al final de la lista
@@ -1165,22 +1182,21 @@ void mostrarMenu() {
     printf("================\n");
 }
 
+/*LINEAS ARREGLAR: 1245, 1274, 1342, 1362*/
 int main() {
     struct ProcesoLegislativo *procesoLegislativo = NULL;
-    struct nodoDiputado *diputados = NULL;
-    struct nodoSenador *senadores = NULL;
     struct nodoCiudadano *ciudadanos = NULL;
     struct presidente *presidente = NULL;
     struct nodoPropuestas *propuestas = NULL;  // Árbol de propuestas
     struct nodoBoletin *boletinEstado = NULL;  // Lista de boletines
-
+    struct congreso *congreso;
+    struct persona *personaPresidente = NULL;
     int opcion;
-    char rut[20], nombre[50], especialidad[50];  // Cambiado a array estático
-    int edad, voto, anioMandato;
+    char rut[20];  // Cambiado a array estático
     int salir = 0;
+    int idPropuesta;
 
     // Inicializa el congreso y le asigna memoria, si falla retorna 1
-    struct congreso *congreso;
     congreso = (struct congreso *)malloc(sizeof(struct congreso));
     if (congreso == NULL) {
         printf("Error al asignar memoria para la estructura congreso.\n");
@@ -1239,8 +1255,8 @@ int main() {
             printf("Ingresa el RUT del presidente: ");
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
-
-            struct persona *personaPresidente = buscarCiudadanoPorRUT(ciudadanos, rut);
+            /*holaamigos de youtube arreglar*/
+            personaPresidente = buscarCiudadanoPorRUT(ciudadanos, rut);
             if (personaPresidente == NULL) {
                 printf("El ciudadano con RUT %s no existe.\n", rut);
             } else {
@@ -1264,7 +1280,6 @@ int main() {
 
         } else if (opcion == 10) {
             // Mostrar Propuesta por ID
-            int idPropuesta;
             printf("Ingresa el ID de la propuesta a buscar: ");
             scanf("%d", &idPropuesta);
             limpiarBuffer();
