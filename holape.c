@@ -137,11 +137,11 @@ Francisco espinoza
     ---SE DEBE PROBAR EN TURBO C---
 */
 /* --- NOTA ---
-    el dia de hoy se va revisar el codigo en turbo C para tener constancia de los warnings y errores que se den en este
+    EL DIA DE HOY SE VA REVISAR EL CODIGO EN TURBO C //VIERNES 25]
     Hora: 20:30.
     favor de ingresar
-    primera constancia: [numero de errores]
-
+    primera constancia: [26] // 20 ARREGLADOS
+    segunda constancia [numero de errores]
 */
 struct ProcesoLegislativo{
   struct presidente *presidente;
