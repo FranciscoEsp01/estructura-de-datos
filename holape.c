@@ -130,6 +130,12 @@ Francisco Espinoza
 
 */
 
+/* cambios 1.11
+Francisco espinoza
+    - se arreglan los structs del main
+    - se arreglan los warnings de datos sin utilizar
+    ---SE DEBE PROBAR EN TURBO C---
+*/
 /* --- NOTA ---
     el dia de hoy se va revisar el codigo en turbo C para tener constancia de los warnings y errores que se den en este
     Hora: 20:30.
@@ -817,10 +823,11 @@ struct nodoSenador *eliminarSenador(struct nodoSenador *senadores, char *rut) {
 /* Función para manejar la Cámara Revisora */
 /* Función para manejar la Cámara Revisora */
 void camaraRevisora(struct nodoPropuestas *raizPropuestas, struct congreso *congreso) {
+    struct propuesta *propuesta;
     int idPropuesta;
     int votosAFavor = 0, votosEnContra = 0;
     int modificacion = 0;  // Si la Cámara Revisora propone modificaciones
-    struct propuesta *propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
+    propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
     printf("Ingresa el ID de la propuesta a discutir en la Cámara Revisora: ");
     scanf("%d", &idPropuesta);
 
@@ -1085,7 +1092,7 @@ void comisionMixta(struct nodoPropuestas *raizPropuestas, struct congreso *congr
     }
 }
 // Función para crear un nuevo boletín
-struct nodoBoletin *crearBoletin(struct propuesta *propuesta, char *fechaPublicacion/*borrar amigooos*/, char *fechaVigencia, int numeroBoletin) {
+struct nodoBoletin *crearBoletin(struct propuesta *propuesta, char *fechaVigencia, int numeroBoletin) {
     struct nodoBoletin *nuevoBoletin = (struct nodoBoletin *)malloc(sizeof(struct nodoBoletin));
     struct boletin *nuevoBoletinHead = (struct boletin *)malloc(sizeof(struct boletin));
 
@@ -1128,7 +1135,7 @@ struct nodoBoletin* publicarLeyEnBoletin(struct nodoBoletin *boletinEstado, stru
     // Crear el nuevo boletín
     /*static amigos xupan*/
     static int numeroBoletin = 1;  // Contador de boletines, incrementa con cada publicación
-    nuevoBoletin = crearBoletin(propuesta, fechaPublicacion, fechaVigencia, numeroBoletin);
+    nuevoBoletin = crearBoletin(propuesta, fechaVigencia, numeroBoletin);
     numeroBoletin++;
 
     // Agregar el boletín al final de la lista
@@ -1178,20 +1185,18 @@ void mostrarMenu() {
 /*LINEAS ARREGLAR: 1245, 1274, 1342, 1362*/
 int main() {
     struct ProcesoLegislativo *procesoLegislativo = NULL;
-    struct nodoDiputado *diputados = NULL;
-    struct nodoSenador *senadores = NULL;
     struct nodoCiudadano *ciudadanos = NULL;
     struct presidente *presidente = NULL;
     struct nodoPropuestas *propuestas = NULL;  // Árbol de propuestas
     struct nodoBoletin *boletinEstado = NULL;  // Lista de boletines
-
+    struct congreso *congreso;
+    struct persona *personaPresidente = NULL;
     int opcion;
-    char rut[20], nombre[50], especialidad[50];  // Cambiado a array estático
-    int edad, voto, anioMandato;
+    char rut[20];  // Cambiado a array estático
     int salir = 0;
+    int idPropuesta;
 
     // Inicializa el congreso y le asigna memoria, si falla retorna 1
-    struct congreso *congreso;
     congreso = (struct congreso *)malloc(sizeof(struct congreso));
     if (congreso == NULL) {
         printf("Error al asignar memoria para la estructura congreso.\n");
@@ -1251,7 +1256,7 @@ int main() {
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
             /*holaamigos de youtube arreglar*/
-            struct persona *personaPresidente = buscarCiudadanoPorRUT(ciudadanos, rut);
+            personaPresidente = buscarCiudadanoPorRUT(ciudadanos, rut);
             if (personaPresidente == NULL) {
                 printf("El ciudadano con RUT %s no existe.\n", rut);
             } else {
@@ -1275,7 +1280,6 @@ int main() {
 
         } else if (opcion == 10) {
             // Mostrar Propuesta por ID
-            int idPropuesta;
             printf("Ingresa el ID de la propuesta a buscar: ");
             scanf("%d", &idPropuesta);
             limpiarBuffer();
