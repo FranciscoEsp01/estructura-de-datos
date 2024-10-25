@@ -137,11 +137,11 @@ Francisco espinoza
     ---SE DEBE PROBAR EN TURBO C---
 */
 /* --- NOTA ---
-    EL DIA DE HOY SE VA REVISAR EL CODIGO EN TURBO C //VIERNES 25]
+    el dia de hoy se va revisar el codigo en turbo C para tener constancia de los warnings y errores que se den en este
     Hora: 20:30.
     favor de ingresar
-    primera constancia: [26] // 20 ARREGLADOS
-    segunda constancia [numero de errores]
+    primera constancia: [numero de errores]
+
 */
 struct ProcesoLegislativo{
   struct presidente *presidente;
@@ -827,10 +827,9 @@ void camaraRevisora(struct nodoPropuestas *raizPropuestas, struct congreso *cong
     int idPropuesta;
     int votosAFavor = 0, votosEnContra = 0;
     int modificacion = 0;  // Si la Cámara Revisora propone modificaciones
-    propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
     printf("Ingresa el ID de la propuesta a discutir en la Cámara Revisora: ");
     scanf("%d", &idPropuesta);
-
+    propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
     // Buscar la propuesta por ID en el ABB
     if (propuesta == NULL) {
         printf("Propuesta con ID %d no encontrada.\n", idPropuesta);
@@ -892,7 +891,7 @@ void promulgacionOVetoPresidencial(struct presidente *presidente, struct nodoPro
     int idPropuesta;
     int decisionPresidencial;
     int decisionCongreso;
-    struct propuesta *propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
+    struct propuesta *propuesta;
     
     if (presidente == NULL) {
         printf("No hay un presidente registrado.\n");
@@ -901,7 +900,7 @@ void promulgacionOVetoPresidencial(struct presidente *presidente, struct nodoPro
 
     printf("Ingresa el ID de la propuesta a discutir para promulgación o veto presidencial: ");
     scanf("%d", &idPropuesta);
-
+    propuesta = buscarPropuesta(raizPropuestas, idPropuesta);
     // Buscar la propuesta por ID en el ABB
     if (propuesta == NULL) {
         printf("Propuesta con ID %d no encontrada.\n", idPropuesta);
