@@ -1114,11 +1114,14 @@ struct nodoBoletin* publicarLeyEnBoletin(struct nodoBoletin *boletinEstado, stru
     char fechaPublicacion[20];
     char fechaVigencia[20];
     int entradaInmediata = 0;
+    int numeroBoletin = 1;  // Contador de boletines
     
+    // Solicitar fecha de publicación
     printf("Ingresa la fecha de publicación (dd/mm/yyyy) para la ley '%s': ", propuesta->tema);
     fgets(fechaPublicacion, sizeof(fechaPublicacion), stdin);
     fechaPublicacion[strcspn(fechaPublicacion, "\n")] = '\0';  // Eliminar el salto de línea
 
+    // Preguntar si la ley entra en vigencia de manera inmediata
     printf("Ley '%s' promulgada. ¿La ley entra en vigencia de manera inmediata? (1 = Sí, 0 = No): ", propuesta->tema);
     scanf("%d", &entradaInmediata);
     limpiarBuffer();  // Para evitar problemas con fgets después de scanf
@@ -1132,10 +1135,7 @@ struct nodoBoletin* publicarLeyEnBoletin(struct nodoBoletin *boletinEstado, stru
     }
 
     // Crear el nuevo boletín
-    /*static amigos xupan*/
-    static int numeroBoletin = 1;  // Contador de boletines, incrementa con cada publicación
     nuevoBoletin = crearBoletin(propuesta, fechaVigencia, numeroBoletin);
-    numeroBoletin++;
 
     // Agregar el boletín al final de la lista
     if (boletinEstado == NULL) {
@@ -1153,8 +1153,6 @@ struct nodoBoletin* publicarLeyEnBoletin(struct nodoBoletin *boletinEstado, stru
 
     return boletinEstado;
 }
-
-
 
 /* Función mostrarMenu con nueva opción para veto presidencial */
 void mostrarMenu() {
