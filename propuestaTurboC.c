@@ -136,6 +136,12 @@ Francisco espinoza
     - se arreglan los warnings de datos sin utilizar
     ---SE DEBE PROBAR EN TURBO C---
 */
+
+/* cambios 1.12
+Francisco Espinoza
+    -se arregla el codigo para que compile en turbo C
+    - actualmente solo contiene 1 warning en la maquina virtual
+*/
 /* --- NOTA ---
     el dia de hoy se va revisar el codigo en turbo C para tener constancia de los warnings y errores que se den en este
     Hora: 20:30.
@@ -148,7 +154,6 @@ struct ProcesoLegislativo{
   struct congreso *congreso;
   struct nodoPropuestas *propuesta;
   struct nodoCiudadano *ciudadanos;
-  struct tribunalConstitucional *tc; // pensando en q esto es como la imagen del coco del tf2 q no hace nada pero si lo borras se rompe todo
   struct nodoBoletin *boletinEstado;
 };
 
@@ -1181,13 +1186,14 @@ void mostrarMenu() {
 
 /*LINEAS ARREGLAR: 1245, 1274, 1342, 1362*/
 int main() {
-    struct ProcesoLegislativo *procesoLegislativo = NULL;
     struct nodoCiudadano *ciudadanos = NULL;
     struct presidente *presidente = NULL;
     struct nodoPropuestas *propuestas = NULL;  // Árbol de propuestas
     struct nodoBoletin *boletinEstado = NULL;  // Lista de boletines
     struct congreso *congreso;
     struct persona *personaPresidente = NULL;
+    struct propuesta *propuestaEncontrada = NULL;
+    struct propuesta *propuesta = NULL;
     int opcion;
     char rut[20];  // Cambiado a array estático
     int salir = 0;
@@ -1281,7 +1287,7 @@ int main() {
             scanf("%d", &idPropuesta);
             limpiarBuffer();
 
-            struct propuesta *propuestaEncontrada = buscarPropuesta(propuestas, idPropuesta);
+            propuestaEncontrada = buscarPropuesta(propuestas, idPropuesta);
             mostrarPropuesta(propuestaEncontrada);  // Esta función ya maneja el caso si la propuesta es NULL
             pause();
 
@@ -1349,7 +1355,7 @@ int main() {
             scanf("%d", &idPropuesta);
             limpiarBuffer();  // Limpiar el buffer
 
-            struct propuesta *propuesta = buscarPropuesta(propuestas, idPropuesta);
+            propuesta = buscarPropuesta(propuestas, idPropuesta);
             if (propuesta == NULL) {
                 printf("Propuesta con ID %d no encontrada.\n", idPropuesta);
             } else {
