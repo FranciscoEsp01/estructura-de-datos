@@ -149,6 +149,47 @@ Francisco Espinoza
     primera constancia: [numero de errores]
 
 */
+
+/* cambios 1.13
+Simon Ledezma
+
+    *** cambios ***
+
+    - se completa la logica de las funciones de comisionMixta y promulgacionOVetoPresidencial
+        + antes se ocupaba el voto por defecto de los diputados y senadores, ahora se pide el voto de cada uno
+        + se eliminan las funciones votoDiputadoCmMixta y votoSenadorCmMixta ya que no son necesarias para la logica actual
+
+    *** funciones agregadas ***
+
+    - se agrega la funcion eliminarLeyDeBoletin, que elimina una ley del boletin de estado
+    - se agrega un arreglo de 10 ministros para el tribunal constitucional
+    - en el main se asignan valores nulos al arreglo vacio de ministros, con la funcion poblarTribunalConstitucional
+    - se agrega la funcion agregarMinistroTribunalConstitucional, que agrega un ministro al tribunal constitucional
+    - se agrega la funcion mostrarTribunalConstitucional, que muestra los ministros del tribunal constitucional
+    - se agrega la funcion eliminarMinistroTribunalConstitucional, que elimina un ministro del tribunal constitucional
+    - se agrega funcion controlConstitucionalidad, para hacer el control constitucional con su respectiva votacion
+        + esta hace uso de la funcion realizarVotacionMinistros, para asignar los votos de cada ministro para declarar la constitucionalidad de una ley
+        + y tmb hace uso de la funcion verificarTC, si no hay suficientes ministros no se realiza la votación
+
+    *** cambios en el main ***
+
+    - se agregan las funciones al menu (19, 20, 21, 22, 23)
+    - se ocupa la funcion de poblarTribunalConstitucional al inicio del main
+
+    *** cosas a considerar ***
+
+    - se debe probar la funcion de controlConstitucionalidad
+    - hay varias declaraciones donde no deberían, cambiar para que compile en turbo c
+    - si alguien se pone la 10 y modulariza el else del control constitucional en el main se lo agradecería
+
+    *** nota ***
+
+    la logica está completa a este punto, solo hay que armar el informe y la presentación
+    y faltan las funciones extra, son secundarias pero el programa hace solo lo que pide el enunciado asiq hay que armarlas para q no nos descuenten puntaje
+    (con una funcion que haga un porcentaje de proyectos aprobados y rechazados y otra que haga un promedio de edad de los diputados y senadores debería bastar)
+
+*/
+
 struct ProcesoLegislativo{
   struct presidente *presidente;
   struct congreso *congreso;
@@ -204,7 +245,7 @@ struct persona{
   char *rut;
   char *nombre;
   int edad;
-  int cargo; // 0 = ciudadano, 1 = diputado, 2 = senador
+  int cargo; // 0 = ciudadano, 1 = diputado, 2 = senador, 3 = presidente, 4 = ministro
   char *especialidad;
   int voto;
 };
@@ -696,6 +737,9 @@ void camaraDeOrigen(struct nodoPropuestas *raizPropuestas, struct congreso *cong
         }
 
         do {
+            printf("El senador %s vota a favor (1) o en contra (0) de la propuesta? ", recSenadores->headSenadores->nombre);
+            scanf("%d", &recSenadores->headSenadores->voto);
+            limpiarBuffer();
             if (recSenadores->headSenadores->voto == 1) {
                 votosAFavor++;
             } else {
@@ -797,7 +841,6 @@ struct nodoSenador *eliminarSenador(struct nodoSenador *senadores, char *rut) {
         return NULL;
     }
 
-
     // Buscar el senador por RUT
     do {
         if (strcmp(rec->headSenadores->rut, rut) == 0) {
@@ -826,7 +869,6 @@ struct nodoSenador *eliminarSenador(struct nodoSenador *senadores, char *rut) {
 }
 
 /* Función para manejar la Cámara Revisora */
-/* Función para manejar la Cámara Revisora */
 void camaraRevisora(struct nodoPropuestas *raizPropuestas, struct congreso *congreso) {
     struct propuesta *propuesta;
     int idPropuesta;
@@ -842,7 +884,6 @@ void camaraRevisora(struct nodoPropuestas *raizPropuestas, struct congreso *cong
     }
 
     printf("La propuesta con ID %d ha llegado a la Cámara Revisora.\n", idPropuesta);
-
 
     // Lógica de votación en la Cámara Revisora
     if (strcmp(propuesta->tipo, "financiero") == 0 || strcmp(propuesta->tipo, "tributario") == 0) {
@@ -951,7 +992,10 @@ void promulgacionOVetoPresidencial(struct presidente *presidente, struct nodoPro
 
             if (recDiputado != NULL) {
                 do {
-                    votosTotales++;
+                    printf("El diputado %s vota a favor (1) o en contra (0) del veto presidencial?: ", recDiputado->headDiputados->nombre);
+                    scanf("%d", &recDiputado->headDiputados->voto);
+                    limpiarBuffer();
+
                     if (recDiputado->headDiputados->voto == 1) {
                         votosFavor++;
                     } else {
@@ -963,7 +1007,10 @@ void promulgacionOVetoPresidencial(struct presidente *presidente, struct nodoPro
 
             if (recSenador != NULL) {
                 do {
-                    votosTotales++;
+                    printf("El senador %s vota a favor (1) o en contra (0) del veto presidencial?: ", recSenador->headSenadores->nombre);
+                    scanf("%d", &recSenador->headSenadores->voto);
+                    limpiarBuffer();
+
                     if (recSenador->headSenadores->voto == 1) {
                         votosFavor++;
                     } else {
@@ -992,20 +1039,6 @@ void promulgacionOVetoPresidencial(struct presidente *presidente, struct nodoPro
         printf("Opción no válida. El proceso se cancela.\n");
 
     }
-}
-
-int votoDiputadoCmMixta(struct nodoDiputado *diputado) {
-    int voto;
-    printf("Ingrese el voto del diputado %s (1 = A favor, Otro numero = En contra): ", diputado->headDiputados->nombre);
-    scanf("%d", &voto);
-    return voto;
-}
-
-int votoSenadorCmMixta(struct nodoSenador *senador) {
-    int voto;
-    printf("Ingrese el voto del senador %s (1 = A favor, Otro numero = En contra): ", senador->headSenadores->nombre);
-    scanf("%d", &voto);
-    return voto;
 }
 
 void comisionMixta(struct nodoPropuestas *raizPropuestas, struct congreso *congreso) {
@@ -1039,7 +1072,10 @@ void comisionMixta(struct nodoPropuestas *raizPropuestas, struct congreso *congr
     printf("\nVotación de los Diputados en la Comisión Mixta:\n");
     if (diputadoRec != NULL) {
         do {
-            votoDiputado = votoDiputadoCmMixta(diputadoRec);
+            printf("El diputado %s vota a favor (1) o en contra (0) de la propuesta? ", diputadoRec->headDiputados->nombre);
+            scanf("%d", &votoDiputado);
+            limpiarBuffer();
+
             if (votoDiputado == 1) {
                 votosAFavorDiputados++;
             } else {
@@ -1056,7 +1092,10 @@ void comisionMixta(struct nodoPropuestas *raizPropuestas, struct congreso *congr
     printf("\nVotación de los Senadores en la Comisión Mixta:\n");
     if (senadorRec != NULL) {
         do {
-            votoSenador = votoSenadorCmMixta(senadorRec);
+            printf("El senador %s vota a favor (1) o en contra (0) de la propuesta? ", senadorRec->headSenadores->nombre);
+            scanf("%d", &votoSenador);
+            limpiarBuffer();
+
             if (votoSenador == 1) {
                 votosAFavorSenadores++;
             } else {
@@ -1113,6 +1152,40 @@ struct nodoBoletin *crearBoletin(struct propuesta *propuesta, char *fechaVigenci
     return nuevoBoletin;
 }
 
+struct nodoBoletin* eliminarLeyDeBoletin(struct nodoBoletin *boletinEstado, int numeroBoletin) {
+    struct nodoBoletin *rec = boletinEstado;
+    struct nodoBoletin *temp = NULL;
+
+    if (boletinEstado == NULL) {
+        printf("No hay boletines en el sistema.\n");
+        return NULL;
+    }
+
+    while (rec != NULL) {
+        if (rec->head->numeroBoletin == numeroBoletin) {
+            if (rec == boletinEstado) { // si es el primer boletín
+                temp = rec->sig;
+                free(rec->head->fechaVigencia);
+                free(rec->head);
+                free(rec);
+                return temp;
+            } else {
+                temp->sig = rec->sig;
+                free(rec->head->fechaVigencia);
+                free(rec->head);
+                free(rec);
+                return boletinEstado;
+            }
+            printf("Boletín con número %d eliminado.\n", numeroBoletin);
+        }
+        temp = rec;
+        rec = rec->sig;
+    }
+
+    printf("Boletín con número %d no encontrado.\n", numeroBoletin);
+    return boletinEstado;
+}
+
 // Función para publicar una ley en el boletín y establecer su fecha de entrada en vigencia
 struct nodoBoletin* publicarLeyEnBoletin(struct nodoBoletin *boletinEstado, struct propuesta *propuesta) {
     struct nodoBoletin *nuevoBoletin = NULL;
@@ -1159,6 +1232,148 @@ struct nodoBoletin* publicarLeyEnBoletin(struct nodoBoletin *boletinEstado, stru
     return boletinEstado;
 }
 
+void poblarTribunalConstitucional(struct persona tribunalConstitucional[10]) {
+    for (int i = 0; i < 10; i++) {
+        tribunalConstitucional[i].edad = 0;  // La edad 0 indica posicion vacia
+        strcpy(tribunalConstitucional[i].rut, "");
+        strcpy(tribunalConstitucional[i].nombre, "");
+        strcpy(tribunalConstitucional[i].especialidad, "");
+        tribunalConstitucional[i].cargo = 0;
+    }
+}
+
+void agregarMinistroTribunalConstitucional(struct persona tribunalConstitucional[], struct nodoCiudadano *ciudadanos, char rut[20]) {
+    struct persona *ministro = buscarCiudadanoPorRUT(ciudadanos, rut);
+    int i;
+
+    if(ministro == NULL) {
+        printf("No se encontró un ciudadano con el RUT %s.\n", rut);
+        return;
+    } 
+    else if (ministro->cargo == 4) {
+        printf("El ciudadano con RUT %s ya es ministro del Tribunal Constitucional.\n", rut);
+        return;
+    } 
+    else if (ministro->cargo != 1) {
+        printf("El ciudadano con RUT %s ya tiene un cargo publico. No puede ser ministro del Tribunal Constitucional.\n", rut);
+        return;
+    }
+
+    for (i = 0; i < 10; i++) {
+        if (tribunalConstitucional[i].edad == 0) {
+            strcpy(tribunalConstitucional[i].rut, ministro->rut);
+            strcpy(tribunalConstitucional[i].nombre, ministro->nombre);
+            tribunalConstitucional[i].edad = ministro->edad;
+            strcpy(tribunalConstitucional[i].especialidad, ministro->especialidad);
+            tribunalConstitucional[i].cargo = 4;
+            printf("Ministro del Tribunal Constitucional agregado correctamente.\n");
+            return;
+        }
+    }
+    printf ("No se pueden agregar más de 10 ministros del Tribunal Constitucional.\n");
+    return;
+}
+
+void eliminarMinistroTribunalConstitucional(struct persona tribunalConstitucional[10], char rut[20]) {
+    int i;
+    for (i = 0; i < 10; i++) {
+        if (strcmp(tribunalConstitucional[i].rut, rut) == 0) {
+            tribunalConstitucional[i].edad = 0;
+            strcpy(tribunalConstitucional[i].rut, "");
+            strcpy(tribunalConstitucional[i].nombre, "");
+            strcpy(tribunalConstitucional[i].especialidad, "");
+            tribunalConstitucional[i].cargo = 0;
+            printf("Ministro del Tribunal Constitucional eliminado correctamente.\n");
+            return;
+        }
+    }
+    printf("No se encontró un ministro del Tribunal Constitucional con el RUT %s.\n", rut);
+}
+
+void mostrarTribunalConstitucional(struct persona tribunalConstitucional[10]) {
+    int i, encontrado = 0;
+
+    for (i = 0; i < 10; i++) {
+        if (tribunalConstitucional[i].edad != 0) {
+            encontrado = 1;
+            break;
+        }
+    }
+    if (!encontrado) {
+        printf("No hay ministros del Tribunal Constitucional registrados.\n");
+        return;
+    }
+
+    for (i = 0; i < 10; i++) {
+        if (tribunalConstitucional[i].edad != 0) {
+            printf("\nNombre: %s\n", tribunalConstitucional[i].nombre);
+            printf("Edad: %d\n", tribunalConstitucional[i].edad);
+            printf("RUT: %s\n", tribunalConstitucional[i].rut);
+            printf("Cargo: Ministro del Tribunal Constitucional\n\n");
+            printf("Especialidad: %s\n", tribunalConstitucional[i].especialidad);
+        }
+    }
+}
+
+int verificarTC(struct persona tribunalConstitucional[10]) {
+    int i;
+    for (i = 0; i < 10; i++) {
+        if (tribunalConstitucional->cargo == 0) {
+            return 0; // no hay sufiicientes ministros
+        }
+    }
+    return 1; // hay suficientes ministros
+}
+
+int realizarVotacionMinistros(struct persona tribunalConstitucional[10]) {
+    int votosAFavor = 0, votosEnContra = 0;
+    int i, voto;
+
+    for (i = 0; i < 10; i++) {
+        if (tribunalConstitucional[i].edad != 0) {
+            printf("Ministro %s, ¿Aprueba la propuesta? (1 = Sí, Otro número = No): ", tribunalConstitucional[i].nombre);
+            scanf("%d", &voto);
+            if (voto == 1) {
+                votosAFavor++;
+            } else {
+                votosEnContra++;
+            }
+        }
+    }
+
+    printf("Votos a favor: %d\n", votosAFavor);
+    printf("Votos en contra: %d\n", votosEnContra);
+
+    if (votosAFavor > votosEnContra) {
+        return 1;  // Propuesta aprobada por el Tribunal Constitucional
+    } else {
+        return 0;  // Propuesta rechazada por el Tribunal Constitucional
+    }
+}
+
+int controlConstitucionalidad(struct nodoBoletin *boletinEstado, struct propuesta *propuesta, struct persona tribunalConstitucional[10]) {
+    struct nodoBoletin *rec = boletinEstado;
+    int votacionMinistros = 0;
+
+    while (rec != NULL) {
+        if (rec->head->propuesta->id == propuesta->id) {
+            printf("La propuesta ha sido publicada en el Boletín N°%d", rec->head->numeroBoletin);
+            // Realizar votacion de los ministros del Tribunal Constitucional
+            votacionMinistros = realizarVotacionMinistros(tribunalConstitucional);
+            if (votacionMinistros) {
+                printf("La propuesta ha sido aprobada por el Tribunal Constitucional.\n");
+                return 1;  // Propuesta aprobada por el Tribunal Constitucional
+            } else {
+                printf("La propuesta ha sido rechazada por el Tribunal Constitucional.\n");
+                return 2;  // Propuesta rechazada por el Tribunal Constitucional
+            }
+        }
+        rec = rec->sig;
+    }
+    printf("La propuesta no ha sido encontrada en el boletín oficial.\n");
+    return 0;  // Propuesta no encontrada en el boletín
+}
+
 /* Función mostrarMenu con nueva opción para veto presidencial */
 void mostrarMenu() {
     printf("\n===== Menu =====\n");
@@ -1172,7 +1387,7 @@ void mostrarMenu() {
     printf("8. Mostrar Presidente\n");
     printf("9. Crear Propuesta\n");
     printf("10. Mostrar Propuesta por ID\n");
-    printf("11. Mostrar Todas las Propuestas\n"); // Nueva opción
+    printf("11. Mostrar Todas las Propuestas\n");
     printf("12. Iniciar Cámara de Origen\n");
     printf("13. Iniciar Cámara Revisora\n");
     printf("14. Promulgación o Veto Presidencial\n");
@@ -1180,11 +1395,16 @@ void mostrarMenu() {
     printf("16. Eliminar Senador\n");
     printf("17. Comisión Mixta\n");
     printf("18. Publicar Ley en Boletín y Establecer Vigencia\n");
-    printf("19. Salir\n");
+    printf("19. Eliminar Ley de Boletín\n");
+    printf("20. Agregar Ministro a Tribunal Constitucional\n");
+    printf("21. Eliminar Ministro del Tribunal Constitucional\n");
+    printf("22. Mostrar Ministros del Tribunal Constitucional\n");
+    printf("23. Realizar Control de Constitucionalidad a un Proyecto\n");
+    printf("24. Salir\n");
     printf("================\n");
 }
 
-/*LINEAS ARREGLAR: 1245, 1274, 1342, 1362*/
+/*LINEAS ARREGLAR: 1245, 1274, 1342, 1362*/ // dios sabrá que hay que arreglar ahora
 int main() {
     struct nodoCiudadano *ciudadanos = NULL;
     struct presidente *presidente = NULL;
@@ -1194,6 +1414,8 @@ int main() {
     struct persona *personaPresidente = NULL;
     struct propuesta *propuestaEncontrada = NULL;
     struct propuesta *propuesta = NULL;
+    struct persona tribunalConstitucional[10];  // Arreglo estatico de 10 ministros para el Tribunal Constitucional
+
     int opcion;
     char rut[20];  // Cambiado a array estático
     int salir = 0;
@@ -1208,6 +1430,8 @@ int main() {
 
     congreso->diputados = NULL;  // Inicializando en NULL para evitar acceso a memoria no válida
     congreso->senadores = NULL;
+
+    poblarTribunalConstitucional(tribunalConstitucional);
 
     do {
         cls();
@@ -1364,6 +1588,62 @@ int main() {
             pause();
 
         } else if (opcion == 19) {
+            // Eliminar Ley de Boletín
+            int numeroBoletin;
+            printf("Ingresa el número de boletín a eliminar: ");
+            scanf("%d", &numeroBoletin);
+            boletinEstado = eliminarLeyDeBoletin(boletinEstado, numeroBoletin);
+            pause();
+        
+        } else if (opcion == 20) {
+            printf("Ingresa el RUT del ciudadano a agregar como ministro del tribunal constitucional: ");
+            fgets(rut, sizeof(rut), stdin);
+            rut[strcspn(rut, "\n")] = '\0';
+            agregarMinistroTribunalConstitucional(tribunalConstitucional, ciudadanos, rut);
+            pause();
+
+        } else if (opcion == 21) {
+            printf("Ingresa el RUT del ministro a eliminar del tribunal constitucional: ");
+            fgets(rut, sizeof(rut), stdin);
+            rut[strcspn(rut, "\n")] = '\0';
+            eliminarMinistroTribunalConstitucional(tribunalConstitucional, rut);
+            pause();
+
+        } else if (opcion == 22) {
+            mostrarTribunalConstitucional(tribunalConstitucional);
+            pause();
+
+        } else if (opcion == 23) {
+            // Control de Constitucionalidad
+            int hayMinistros;
+            hayMinistros = verificarTC(tribunalConstitucional);
+
+            if (hayMinistros == 0) {
+                printf("No hay suficientes ministros en el tribunal constitucional para realizar el control de constitucionalidad.\n");
+            } else { // si alguien modulariza esto seria un golazo
+                printf("Ingresa el ID de la propuesta a verificar en el boletín: ");
+                scanf("%d", &idPropuesta);
+                limpiarBuffer(); 
+
+                propuesta = buscarPropuesta(propuestas, idPropuesta);
+                int esConstitucional;
+                if (propuesta == NULL) {
+                    printf("Propuesta con ID %d no encontrada.\n", idPropuesta);
+                } else {
+                    esConstitucional = controlConstitucional(boletinEstado, propuesta, tribunalConstitucional);
+                    if (esConstitucional == 0) {
+                        printf("La propuesta '%s' aún no se ha publicado en el boletín del estado.\n", propuesta->tema);
+                    } else if (esConstitucional == 2) {
+                        printf("La propuesta '%s' no es constitucional. ", propuesta->tema);
+                        eliminarLeyDeBoletin(boletinEstado, propuesta->id);
+                    } else {
+                        printf("La propuesta '%s' es constitucional y se mantiene en el boletín del estado\n", propuesta->tema);
+                    }
+                }
+            }
+            pause();
+
+        } else if (opcion == 24) {
             printf("Saliendo del programa...\n");
             salir = 1;
             pause();
