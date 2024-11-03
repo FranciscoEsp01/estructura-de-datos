@@ -1234,13 +1234,20 @@ struct nodoBoletin* publicarLeyEnBoletin(struct nodoBoletin *boletinEstado, stru
 
 void poblarTribunalConstitucional(struct persona tribunalConstitucional[10]) {
     for (int i = 0; i < 10; i++) {
-        tribunalConstitucional[i].edad = 0;  // La edad 0 indica posicion vacia
-        strcpy(tribunalConstitucional[i].rut, " ");
+        // Asignar memoria para cadenas de `rut`, `nombre`, y `especialidad` si son punteros
+        tribunalConstitucional[i].rut = (char *)malloc(20 * sizeof(char));  // Asignar espacio para 20 caracteres, ajustar según el tamaño necesario
+        tribunalConstitucional[i].nombre = (char *)malloc(50 * sizeof(char));  // Asignar espacio para 50 caracteres, ajustar según el tamaño necesario
+        tribunalConstitucional[i].especialidad = (char *)malloc(50 * sizeof(char));  // Asignar espacio para 50 caracteres, ajustar según el tamaño necesario
+
+        // Inicializar los campos
+        tribunalConstitucional[i].edad = 0;  // La edad 0 indica posición vacía
+        strcpy(tribunalConstitucional[i].rut, " ");  // Copia un espacio vacío para indicar que no está ocupado
         strcpy(tribunalConstitucional[i].nombre, " ");
         strcpy(tribunalConstitucional[i].especialidad, " ");
         tribunalConstitucional[i].cargo = 0;
     }
 }
+
 
 void agregarMinistroTribunalConstitucional(struct persona tribunalConstitucional[], struct nodoCiudadano *ciudadanos, char rut[20]) {
     struct persona *ministro = buscarCiudadanoPorRUT(ciudadanos, rut);
