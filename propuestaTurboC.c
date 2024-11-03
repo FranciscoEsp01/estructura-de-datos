@@ -1165,15 +1165,15 @@ struct nodoBoletin* eliminarLeyDeBoletin(struct nodoBoletin *boletinEstado, int 
         if (rec->head->numeroBoletin == numeroBoletin) {
             if (rec == boletinEstado) { // si es el primer boletín
                 temp = rec->sig;
-                free(rec->head->fechaVigencia);
-                free(rec->head);
-                free(rec);
+                rec->head->fechaVigencia = NULL;
+                rec->head = NULL;
+                rec = NULL;
                 return temp;
             } else {
                 temp->sig = rec->sig;
-                free(rec->head->fechaVigencia);
-                free(rec->head);
-                free(rec);
+                rec->head->fechaVigencia = NULL;
+                rec->head = NULL;
+                rec = NULL;
                 return boletinEstado;
             }
             printf("Boletín con número %d eliminado.\n", numeroBoletin);
@@ -1235,9 +1235,9 @@ struct nodoBoletin* publicarLeyEnBoletin(struct nodoBoletin *boletinEstado, stru
 void poblarTribunalConstitucional(struct persona tribunalConstitucional[10]) {
     for (int i = 0; i < 10; i++) {
         tribunalConstitucional[i].edad = 0;  // La edad 0 indica posicion vacia
-        strcpy(tribunalConstitucional[i].rut, "");
-        strcpy(tribunalConstitucional[i].nombre, "");
-        strcpy(tribunalConstitucional[i].especialidad, "");
+        strcpy(tribunalConstitucional[i].rut, " ");
+        strcpy(tribunalConstitucional[i].nombre, " ");
+        strcpy(tribunalConstitucional[i].especialidad, " ");
         tribunalConstitucional[i].cargo = 0;
     }
 }
@@ -1379,27 +1379,36 @@ void mostrarMenu() {
     printf("\n===== Menu =====\n");
     printf("1. Crear Ciudadano\n");
     printf("2. Mostrar Ciudadanos\n");
+    printf("\n");
     printf("3. Agregar Diputado\n");
     printf("4. Mostrar Diputados\n");
-    printf("5. Agregar Senador\n");
-    printf("6. Mostrar Senadores\n");
-    printf("7. Agregar Presidente\n");
-    printf("8. Mostrar Presidente\n");
-    printf("9. Crear Propuesta\n");
-    printf("10. Mostrar Propuesta por ID\n");
-    printf("11. Mostrar Todas las Propuestas\n");
-    printf("12. Iniciar Cámara de Origen\n");
-    printf("13. Iniciar Cámara Revisora\n");
-    printf("14. Promulgación o Veto Presidencial\n");
-    printf("15. Eliminar Diputado\n");
-    printf("16. Eliminar Senador\n");
-    printf("17. Comisión Mixta\n");
+    printf("5. Eliminar Diputado\n"); // a mover
+    printf("\n");
+    printf("6. Agregar Senador\n");
+    printf("7. Mostrar Senadores\n");
+    printf("8. Eliminar Senador\n"); // a mover
+    printf("\n");
+    printf("9. Agregar Presidente\n");
+    printf("10. Mostrar Presidente\n");
+    printf("\n");
+    printf("11. Crear Propuesta\n");
+    printf("12. Mostrar Propuesta por ID\n");
+    printf("13. Mostrar Todas las Propuestas\n");
+    printf("\n");
+    printf("14. Iniciar Cámara de Origen\n");
+    printf("15. Iniciar Cámara Revisora\n");
+    printf("16. Comisión Mixta\n"); // a mover
+    printf("\n");
+    printf("17. Promulgación o Veto Presidencial\n");
+    printf("\n");
     printf("18. Publicar Ley en Boletín y Establecer Vigencia\n");
     printf("19. Eliminar Ley de Boletín\n");
+    printf("\n");
     printf("20. Agregar Ministro a Tribunal Constitucional\n");
     printf("21. Eliminar Ministro del Tribunal Constitucional\n");
     printf("22. Mostrar Ministros del Tribunal Constitucional\n");
     printf("23. Realizar Control de Constitucionalidad a un Proyecto\n");
+    printf("\n");
     printf("24. Salir\n");
     printf("================\n");
 }
@@ -1465,6 +1474,14 @@ int main() {
             pause();
 
         } else if (opcion == 5) {
+            // Eliminar Diputado
+            printf("Ingresa el RUT del diputado a eliminar: ");
+            fgets(rut, sizeof(rut), stdin);
+            rut[strcspn(rut, "\n")] = '\0';
+            congreso->diputados = eliminarDiputado(congreso->diputados, rut);  // Modificar correctamente la lista de diputados
+            pause();
+
+        } else if (opcion == 6) {
             // Agregar Senador
             printf("Ingresa el RUT del ciudadano a agregar como senador: ");
             fgets(rut, sizeof(rut), stdin);
@@ -1472,12 +1489,20 @@ int main() {
             congreso->senadores = agregarSenador(congreso->senadores, ciudadanos, rut);
             pause();
 
-        } else if (opcion == 6) {
+        } else if (opcion == 7) {
             // Mostrar Senadores
             mostrarSenadores(congreso->senadores);
             pause();
+    
+        } else if (opcion == 8) {
+            // Eliminar Senador
+            printf("Ingresa el RUT del senador a eliminar: ");
+            fgets(rut, sizeof(rut), stdin);
+            rut[strcspn(rut, "\n")] = '\0';
+            congreso->senadores = eliminarSenador(congreso->senadores, rut);  // Modificar correctamente la lista de senadores
+            pause();
 
-        } else if (opcion == 7) {
+        } else if (opcion == 9) {
             // Agregar Presidente
             printf("Ingresa el RUT del presidente: ");
             fgets(rut, sizeof(rut), stdin);
@@ -1490,13 +1515,13 @@ int main() {
                 presidente = crearPresidente(personaPresidente);  // Asignamos al presidente
             }
             pause();
-    
-        } else if (opcion == 8) {
+
+        } else if (opcion == 10) {
             // Mostrar Presidente
             mostrarPresidente(presidente);
             pause();
 
-        } else if (opcion == 9) {
+        } else if (opcion == 11) {
             // Crear Propuesta y agregarla al ABB
             if (presidente == NULL) {
                 printf("Primero debes agregar un presidente para asignar una propuesta.\n");
@@ -1505,7 +1530,7 @@ int main() {
             }
             pause();
 
-        } else if (opcion == 10) {
+        } else if (opcion == 12) {
             // Mostrar Propuesta por ID
             printf("Ingresa el ID de la propuesta a buscar: ");
             scanf("%d", &idPropuesta);
@@ -1515,12 +1540,12 @@ int main() {
             mostrarPropuesta(propuestaEncontrada);  // Esta función ya maneja el caso si la propuesta es NULL
             pause();
 
-        } else if (opcion == 11) {
+        } else if (opcion == 13) {
             // Mostrar todas las propuestas
             mostrarPropuestas(propuestas);
             pause();
 
-        } else if (opcion == 12) {
+        } else if (opcion == 14) {
             // Iniciar Cámara de Origen
             if (propuestas == NULL) {
                 printf("Primero debes crear una propuesta para iniciar la Cámara de Origen.\n");
@@ -1529,7 +1554,7 @@ int main() {
             }
             pause();
 
-        } else if (opcion == 13) {
+        } else if (opcion == 15) {
             // Iniciar Cámara Revisora
             if (propuestas == NULL) {
                 printf("Primero debes crear una propuesta para iniciar la Cámara Revisora.\n");
@@ -1538,37 +1563,21 @@ int main() {
             }
             pause();
 
-        } else if (opcion == 14) {
-            // Promulgación o Veto Presidencial
-            if (presidente == NULL || propuestas == NULL) {
-                printf("Se necesita tanto un presidente como una propuesta para proceder con la promulgación o veto.\n");
-            } else {
-                promulgacionOVetoPresidencial(presidente, propuestas, congreso);  // Asegurarse de pasar la estructura congreso correctamente
-            }
-            pause();
-
-        } else if (opcion == 15) {
-            // Eliminar Diputado
-            printf("Ingresa el RUT del diputado a eliminar: ");
-            fgets(rut, sizeof(rut), stdin);
-            rut[strcspn(rut, "\n")] = '\0';
-            congreso->diputados = eliminarDiputado(congreso->diputados, rut);  // Modificar correctamente la lista de diputados
-            pause();
-
         } else if (opcion == 16) {
-            // Eliminar Senador
-            printf("Ingresa el RUT del senador a eliminar: ");
-            fgets(rut, sizeof(rut), stdin);
-            rut[strcspn(rut, "\n")] = '\0';
-            congreso->senadores = eliminarSenador(congreso->senadores, rut);  // Modificar correctamente la lista de senadores
-            pause();
-
-        } else if (opcion == 17) {
             // Comisión Mixta
             if (propuestas == NULL) {
                 printf("Primero debes crear una propuesta para enviar a la Comisión Mixta.\n");
             } else {
                 comisionMixta(propuestas, congreso);  // Asegurarse de pasar la estructura congreso correctamente
+            }
+            pause();
+
+        } else if (opcion == 17) {
+            // Promulgación o Veto Presidencial
+            if (presidente == NULL || propuestas == NULL) {
+                printf("Se necesita tanto un presidente como una propuesta para proceder con la promulgación o veto.\n");
+            } else {
+                promulgacionOVetoPresidencial(presidente, propuestas, congreso);  // Asegurarse de pasar la estructura congreso correctamente
             }
             pause();
 
@@ -1596,6 +1605,7 @@ int main() {
             pause();
         
         } else if (opcion == 20) {
+            // Agregar Ministro a Tribunal Constitucional
             printf("Ingresa el RUT del ciudadano a agregar como ministro del tribunal constitucional: ");
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
@@ -1603,6 +1613,7 @@ int main() {
             pause();
 
         } else if (opcion == 21) {
+            // Eliminar Ministro del Tribunal Constitucional
             printf("Ingresa el RUT del ministro a eliminar del tribunal constitucional: ");
             fgets(rut, sizeof(rut), stdin);
             rut[strcspn(rut, "\n")] = '\0';
@@ -1610,6 +1621,7 @@ int main() {
             pause();
 
         } else if (opcion == 22) {
+            // Mostrar Ministros del Tribunal Constitucional
             mostrarTribunalConstitucional(tribunalConstitucional);
             pause();
 
@@ -1630,7 +1642,7 @@ int main() {
                 if (propuesta == NULL) {
                     printf("Propuesta con ID %d no encontrada.\n", idPropuesta);
                 } else {
-                    esConstitucional = controlConstitucional(boletinEstado, propuesta, tribunalConstitucional);
+                    esConstitucional = controlConstitucionalidad(boletinEstado, propuesta, tribunalConstitucional);
                     if (esConstitucional == 0) {
                         printf("La propuesta '%s' aún no se ha publicado en el boletín del estado.\n", propuesta->tema);
                     } else if (esConstitucional == 2) {
