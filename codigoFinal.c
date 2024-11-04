@@ -207,6 +207,11 @@ simon ledezma
     SOLO FALTA QUE COMPILE EN TURBO C Y SE TERMINA TODO ESTO DIOS SANTO
 */
 
+/* cambios 1.15
+simon ledezma 
+    - se agrega la funcion de eliminarCiudadano al menu q se me olvido
+    - falta revisar los warnings del clion
+*/
 
 struct presidente {
     struct persona *persona;
