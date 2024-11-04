@@ -197,7 +197,14 @@ simon ledezma
     - se mueve el menú para que quede ordenado de forma que esten las funciones de cada tipo agrupadas
     - ahora las funciones que efectuan votaciones sobre una propuesta pueden cambiar el estado de esta
     - se completa la logica de absolutamente todas las funciones para votar
+    - se agrega la funcion mostrarPromedioEdadCiudadanos
+        + muestra el promedio de edad, la cantidad de ciudadanos y el porcentaje de los ciudadanos con una edad arriba del promedio
+        
+    - se agrega la funcion mostrarPorcentajeProyectosAprobados
+        + esta hace uso de las funciones contarPropuestas y contarPropuestasAprobadas
+        + muestra por pantalla el porcentaje de propuestas aprobadas, la cantidad de propuestas y la cantidad de propuestas aprobadas
 
+    SOLO FALTA QUE COMPILE EN TURBO C Y SE TERMINA TODO ESTO DIOS SANTO
 */
 
 
